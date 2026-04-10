@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import { defineConfig } from "vite"
+import react, { reactCompilerPreset } from "@vitejs/plugin-react"
+import babel from "@rolldown/plugin-babel"
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from "vite-plugin-pwa"
 import path from "path"
 
 
@@ -11,6 +12,35 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.svg", "icons.svg", "pwa.svg"],
+      manifest: {
+        name: "1House",
+        short_name: "1House",
+        description: "Quản lý đặt phòng và vận hành cơ sở lưu trú.",
+        theme_color: "#111827",
+        background_color: "#ffffff",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
+        icons: [
+          {
+            src: "/pwa.svg",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable",
+          },
+        ],
+      },
+      workbox: {
+        navigateFallback: "/index.html",
+        globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+      },
+      devOptions: {
+        enabled: true,
+      },
+    }),
   ],
   resolve: {
     alias: {
