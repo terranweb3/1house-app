@@ -1,52 +1,66 @@
-import { format, parseISO } from "date-fns"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { toast } from "sonner"
+import { format, parseISO } from "date-fns";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
-import { BookingRoomCombobox } from "@/components/booking/BookingRoomCombobox"
-import { sortRooms } from "@/components/booking/sortRooms"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { BookingRoomCombobox } from "@/components/booking/BookingRoomCombobox";
+import { sortRooms } from "@/components/booking/sortRooms";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   countNightsInclusive,
   expandLinesToCreateItems,
   groupBookingItemsToLines,
   MAX_NIGHTS_PER_LINE,
-} from "@/lib/bookingRanges"
-import { useBranches } from "@/hooks/useBranches"
-import { useRooms } from "@/hooks/useRooms"
-import type { BookingWithItems, PaymentStatus, UUID } from "@/lib/types"
-import type { CreateBookingInput, UpdateBookingInput } from "@/lib/bookings"
+} from "@/lib/bookingRanges";
+import { useBranches } from "@/hooks/useBranches";
+import { useRooms } from "@/hooks/useRooms";
+import type { BookingWithItems, PaymentStatus, UUID } from "@/lib/types";
+import type { CreateBookingInput, UpdateBookingInput } from "@/lib/bookings";
 
 type BookingItemInput = {
-  id: string
-  branchId: UUID | null
-  roomId: UUID | null
-  fromDate: string
-  toDate: string
-  pricePerNight: string
-}
+  id: string;
+  branchId: UUID | null;
+  roomId: UUID | null;
+  fromDate: string;
+  toDate: string;
+  pricePerNight: string;
+};
 
 function todayIso() {
-  return format(new Date(), "yyyy-MM-dd")
+  return format(new Date(), "yyyy-MM-dd");
 }
 
 function generateId() {
-  return Math.random().toString(36).slice(2)
+  return Math.random().toString(36).slice(2);
 }
 
 function emptyLine(): BookingItemInput {
-  const t = todayIso()
-  return { id: generateId(), branchId: null, roomId: null, fromDate: t, toDate: t, pricePerNight: "" }
+  const t = todayIso();
+  return {
+    id: generateId(),
+    branchId: null,
+    roomId: null,
+    fromDate: t,
+    toDate: t,
+    pricePerNight: "",
+  };
 }
 
 export function BookingDialog({
@@ -57,55 +71,55 @@ export function BookingDialog({
   updateBooking,
   prefillCreate,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  editBooking?: BookingWithItems | null
-  createBooking?: (input: CreateBookingInput) => Promise<void>
-  updateBooking?: (id: UUID, input: UpdateBookingInput) => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editBooking?: BookingWithItems | null;
+  createBooking?: (input: CreateBookingInput) => Promise<void>;
+  updateBooking?: (id: UUID, input: UpdateBookingInput) => Promise<void>;
   /** Khi tạo mới: điền sẵn một dòng (ví dụ từ màn Phòng — check-in cần đặt phòng). */
   prefillCreate?: {
-    branchId: UUID
-    roomId: UUID
-    fromDate: string
-    toDate: string
-    pricePerNight?: string
-  } | null
+    branchId: UUID;
+    roomId: UUID;
+    fromDate: string;
+    toDate: string;
+    pricePerNight?: string;
+  } | null;
 }) {
-  const { branches } = useBranches()
+  const { branches } = useBranches();
 
-  const [guestName, setGuestName] = useState("")
-  const [guestPhone, setGuestPhone] = useState("")
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid")
-  const [note, setNote] = useState("")
-  const [items, setItems] = useState<BookingItemInput[]>([emptyLine()])
-  const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
+  const [note, setNote] = useState("");
+  const [items, setItems] = useState<BookingItemInput[]>([emptyLine()]);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const allRooms = useRooms("all")
+  const allRooms = useRooms("all");
 
   const branchNameById = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const b of branches) m.set(b.id, b.name)
-    return m
-  }, [branches])
+    const m = new Map<string, string>();
+    for (const b of branches) m.set(b.id, b.name);
+    return m;
+  }, [branches]);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     if (editBooking) {
-      setGuestName(editBooking.guest_name)
-      setGuestPhone(editBooking.guest_phone ?? "")
-      setPaymentStatus(editBooking.payment_status)
-      setNote(editBooking.note ?? "")
+      setGuestName(editBooking.guest_name);
+      setGuestPhone(editBooking.guest_phone ?? "");
+      setPaymentStatus(editBooking.payment_status);
+      setNote(editBooking.note ?? "");
       setItems(
         editBooking.items.length > 0
           ? groupBookingItemsToLines(editBooking.items, generateId)
-          : [emptyLine()]
-      )
+          : [emptyLine()],
+      );
     } else {
-      setGuestName("")
-      setGuestPhone("")
-      setPaymentStatus("unpaid")
-      setNote("")
+      setGuestName("");
+      setGuestPhone("");
+      setPaymentStatus("unpaid");
+      setNote("");
       if (prefillCreate) {
         setItems([
           {
@@ -116,142 +130,152 @@ export function BookingDialog({
             toDate: prefillCreate.toDate,
             pricePerNight: prefillCreate.pricePerNight ?? "",
           },
-        ])
+        ]);
       } else {
-        setItems([emptyLine()])
+        setItems([emptyLine()]);
       }
     }
-    setError(null)
-    setIsSaving(false)
-  }, [open, editBooking, prefillCreate])
+    setError(null);
+    setIsSaving(false);
+  }, [open, editBooking, prefillCreate]);
 
   const roomsByBranch = useMemo(() => {
-    const map = new Map<UUID, ReturnType<typeof sortRooms>>()
+    const map = new Map<UUID, ReturnType<typeof sortRooms>>();
     allRooms.rooms.forEach((room) => {
-      const list = map.get(room.branch_id) ?? []
-      list.push(room)
-      map.set(room.branch_id, list)
-    })
+      const list = map.get(room.branch_id) ?? [];
+      list.push(room);
+      map.set(room.branch_id, list);
+    });
     map.forEach((list, key) => {
-      map.set(key, sortRooms(list))
-    })
-    return map
-  }, [allRooms.rooms])
+      map.set(key, sortRooms(list));
+    });
+    return map;
+  }, [allRooms.rooms]);
 
   const linesStaySummary = useMemo(() => {
-    const froms = items.map((i) => i.fromDate).filter((d) => d.trim() !== "")
-    const tos = items.map((i) => i.toDate).filter((d) => d.trim() !== "")
-    if (froms.length === 0 || tos.length === 0) return null
-    const min = [...froms, ...tos].sort()[0]!
-    const max = [...froms, ...tos].sort().slice(-1)[0]!
-    const d0 = parseISO(min)
-    const d1 = parseISO(max)
-    if (Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime())) return null
+    const froms = items.map((i) => i.fromDate).filter((d) => d.trim() !== "");
+    const tos = items.map((i) => i.toDate).filter((d) => d.trim() !== "");
+    if (froms.length === 0 || tos.length === 0) return null;
+    const min = [...froms, ...tos].sort()[0]!;
+    const max = [...froms, ...tos].sort().slice(-1)[0]!;
+    const d0 = parseISO(min);
+    const d1 = parseISO(max);
+    if (Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime())) return null;
     if (min === max) {
-      return `Khách đặt ngày ${format(d0, "dd/MM/yyyy")}.`
+      return `Khách đặt ngày ${format(d0, "dd/MM/yyyy")}.`;
     }
-    return `Khách đặt từ ${format(d0, "dd/MM/yyyy")} đến ${format(d1, "dd/MM/yyyy")}.`
-  }, [items])
+    return `Khách đặt từ ${format(d0, "dd/MM/yyyy")} đến ${format(d1, "dd/MM/yyyy")}.`;
+  }, [items]);
 
   const bookingEstimate = useMemo(() => {
-    let totalNights = 0
-    let totalAmount = 0
+    let totalNights = 0;
+    let totalAmount = 0;
     for (const item of items) {
-      const n = countNightsInclusive(item.fromDate, item.toDate)
-      const raw = item.pricePerNight.replaceAll(/[^\d]/g, "")
-      const p = Number(raw)
+      const n = countNightsInclusive(item.fromDate, item.toDate);
+      const raw = item.pricePerNight.replaceAll(/[^\d]/g, "");
+      const p = Number(raw);
       if (n > 0 && raw && Number.isFinite(p) && p >= 0) {
-        totalNights += n
-        totalAmount += n * p
+        totalNights += n;
+        totalAmount += n * p;
       }
     }
-    const lineCount = items.filter((i) => i.branchId && i.roomId).length
-    return { totalNights, totalAmount, lineCount }
-  }, [items])
+    const lineCount = items.filter((i) => i.branchId && i.roomId).length;
+    return { totalNights, totalAmount, lineCount };
+  }, [items]);
 
   const addItem = useCallback(() => {
-    setItems((prev) => [...prev, emptyLine()])
-  }, [])
+    setItems((prev) => [...prev, emptyLine()]);
+  }, []);
 
   const removeItem = useCallback((id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
-  }, [])
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  }, []);
 
-  const updateItem = useCallback((id: string, field: keyof BookingItemInput, value: string | null) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item
-        const updated = { ...item, [field]: value }
-        if (field === "branchId") {
-          updated.roomId = null
-        }
-        return updated
-      })
-    )
-  }, [])
+  const updateItem = useCallback(
+    (id: string, field: keyof BookingItemInput, value: string | null) => {
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.id !== id) return item;
+          const updated = { ...item, [field]: value };
+          if (field === "branchId") {
+            updated.roomId = null;
+          }
+          return updated;
+        }),
+      );
+    },
+    [],
+  );
 
   const validateLines = useCallback(() => {
-    if (!guestName.trim()) return "Vui lòng nhập tên khách"
-    if (items.length === 0) return "Vui lòng thêm ít nhất 1 phòng"
+    if (!guestName.trim()) return "Vui lòng nhập tên khách";
+    if (items.length === 0) return "Vui lòng thêm ít nhất 1 phòng";
     for (const item of items) {
-      if (!item.branchId) return "Vui lòng chọn chi nhánh cho tất cả các phòng"
-      if (!item.roomId) return "Vui lòng chọn phòng cho tất cả các ô"
-      if (!item.fromDate || !item.toDate) return "Vui lòng chọn từ ngày và đến ngày cho tất cả các phòng"
-      const start = parseISO(item.fromDate)
-      const end = parseISO(item.toDate)
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "Ngày không hợp lệ"
-      if (start > end) return "Từ ngày phải trước hoặc bằng đến ngày"
-      const nights = countNightsInclusive(item.fromDate, item.toDate)
-      if (nights === 0) return "Khoảng ngày không hợp lệ"
-      if (nights > MAX_NIGHTS_PER_LINE) return `Mỗi phòng tối đa ${MAX_NIGHTS_PER_LINE} đêm liên tiếp`
-      const raw = item.pricePerNight.replaceAll(/[^\d]/g, "")
-      const n = Number(raw)
-      if (!raw || !Number.isFinite(n) || n < 0) return "Giá mỗi đêm không hợp lệ"
+      if (!item.branchId) return "Vui lòng chọn chi nhánh cho tất cả các phòng";
+      if (!item.roomId) return "Vui lòng chọn phòng cho tất cả các ô";
+      if (!item.fromDate || !item.toDate)
+        return "Vui lòng chọn từ ngày và đến ngày cho tất cả các phòng";
+      const start = parseISO(item.fromDate);
+      const end = parseISO(item.toDate);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()))
+        return "Ngày không hợp lệ";
+      if (start > end) return "Từ ngày phải trước hoặc bằng đến ngày";
+      const nights = countNightsInclusive(item.fromDate, item.toDate);
+      if (nights === 0) return "Khoảng ngày không hợp lệ";
+      if (nights > MAX_NIGHTS_PER_LINE)
+        return `Mỗi phòng tối đa ${MAX_NIGHTS_PER_LINE} đêm liên tiếp`;
+      const raw = item.pricePerNight.replaceAll(/[^\d]/g, "");
+      const n = Number(raw);
+      if (!raw || !Number.isFinite(n) || n < 0)
+        return "Giá mỗi đêm không hợp lệ";
     }
-    return null
-  }, [guestName, items])
+    return null;
+  }, [guestName, items]);
 
   const onSubmit = useCallback(async () => {
-    const validationError = validateLines()
-    if (validationError) return setError(validationError)
+    const validationError = validateLines();
+    if (validationError) return setError(validationError);
 
-    setError(null)
-    setIsSaving(true)
+    setError(null);
+    setIsSaving(true);
     try {
       if (editBooking) {
-        if (!updateBooking) throw new Error("updateBooking is required for edit mode")
+        if (!updateBooking)
+          throw new Error("updateBooking is required for edit mode");
         await updateBooking(editBooking.id, {
           guestName: guestName.trim(),
           guestPhone: guestPhone.trim() || null,
           paymentStatus,
           note: note.trim() || null,
-        })
-        toast.success("Cập nhật đặt phòng thành công")
+        });
+        toast.success("Cập nhật đặt phòng thành công");
       } else {
-        if (!createBooking) throw new Error("createBooking is required for create mode")
+        if (!createBooking)
+          throw new Error("createBooking is required for create mode");
         const lines = items.map((item) => ({
           branchId: item.branchId as UUID,
           roomId: item.roomId as UUID,
           fromDate: item.fromDate,
           toDate: item.toDate,
           pricePerNight: Number(item.pricePerNight.replaceAll(/[^\d]/g, "")),
-        }))
-        const bookingItems = expandLinesToCreateItems(lines)
-        if (bookingItems.length === 0) throw new Error("Không có dòng đặt phòng hợp lệ")
+        }));
+        const bookingItems = expandLinesToCreateItems(lines);
+        if (bookingItems.length === 0)
+          throw new Error("Không có dòng đặt phòng hợp lệ");
         await createBooking({
           guestName: guestName.trim(),
           guestPhone: guestPhone.trim() || null,
           paymentStatus,
           note: note.trim() || null,
           items: bookingItems,
-        })
-        toast.success("Tạo đặt phòng thành công")
+        });
+        toast.success("Tạo đặt phòng thành công");
       }
-      onOpenChange(false)
+      onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lưu thất bại")
+      setError(e instanceof Error ? e.message : "Lưu thất bại");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }, [
     validateLines,
@@ -264,18 +288,20 @@ export function BookingDialog({
     onOpenChange,
     createBooking,
     updateBooking,
-  ])
+  ]);
 
-  const readOnly = Boolean(editBooking)
+  const readOnly = Boolean(editBooking);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal="trap-focus">
       <DialogContent className="w-full min-w-0 max-h-[min(90vh,100dvh)] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto sm:max-h-[90vh] sm:max-w-[min(960px,calc(100vw-2rem))]">
         <DialogHeader>
-          <DialogTitle>{editBooking ? "Sửa đặt phòng" : "Tạo đặt phòng mới"}</DialogTitle>
+          <DialogTitle>
+            {editBooking ? "Sửa đặt phòng" : "Tạo đặt phòng mới"}
+          </DialogTitle>
           <DialogDescription>
-            Mỗi dòng là một phòng (có thể khác chi nhánh): chọn từ ngày đến ngày và giá mỗi đêm. Thêm nhiều dòng để đặt
-            nhiều phòng.
+            Mỗi dòng là một phòng (có thể khác chi nhánh): chọn từ ngày đến ngày
+            và giá mỗi đêm. Thêm nhiều dòng để đặt nhiều phòng.
           </DialogDescription>
         </DialogHeader>
 
@@ -321,7 +347,12 @@ export function BookingDialog({
             <div className="flex items-center justify-between gap-2">
               <Label className="text-base font-medium">Danh sách phòng</Label>
               {!readOnly ? (
-                <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addItem}
+                >
                   + Thêm phòng
                 </Button>
               ) : null}
@@ -329,7 +360,8 @@ export function BookingDialog({
 
             {readOnly ? (
               <p className="text-xs text-muted-foreground mb-3 mt-1">
-                Để thay đổi phòng hoặc khoảng ngày, hãy xoá và tạo lại đặt phòng.
+                Để thay đổi phòng hoặc khoảng ngày, hãy xoá và tạo lại đặt
+                phòng.
               </p>
             ) : null}
 
@@ -339,18 +371,23 @@ export function BookingDialog({
               </p>
             ) : !readOnly ? (
               <p className="text-xs text-muted-foreground mt-2">
-                Chọn từ ngày và đến ngày trên từng dòng — tóm tắt khoảng đặt sẽ hiển thị ở đây.
+                Chọn từ ngày và đến ngày trên từng dòng — tóm tắt khoảng đặt sẽ
+                hiển thị ở đây.
               </p>
             ) : null}
 
-            {!readOnly && (bookingEstimate.totalNights > 0 || bookingEstimate.lineCount > 0) ? (
+            {!readOnly &&
+            (bookingEstimate.totalNights > 0 ||
+              bookingEstimate.lineCount > 0) ? (
               <p className="text-xs tabular-nums border border-border/60 bg-muted/10 px-2.5 py-2 mt-2 leading-snug">
                 <span className="text-muted-foreground">Ước tính: </span>
                 <span className="font-medium text-foreground">
                   {bookingEstimate.lineCount} phòng
                 </span>
                 <span className="text-muted-foreground"> · </span>
-                <span className="font-medium text-foreground">{bookingEstimate.totalNights} đêm</span>
+                <span className="font-medium text-foreground">
+                  {bookingEstimate.totalNights} đêm
+                </span>
                 <span className="text-muted-foreground"> · Tổng </span>
                 <span className="font-semibold text-foreground">
                   {bookingEstimate.totalAmount.toLocaleString("vi-VN")} đ
@@ -360,7 +397,9 @@ export function BookingDialog({
 
             <div className="space-y-3 mt-3">
               {items.map((item) => {
-                const branchRooms = item.branchId ? roomsByBranch.get(item.branchId as UUID) ?? [] : []
+                const branchRooms = item.branchId
+                  ? (roomsByBranch.get(item.branchId as UUID) ?? [])
+                  : [];
                 return (
                   <div
                     key={item.id}
@@ -370,14 +409,17 @@ export function BookingDialog({
                       <Label>Chi nhánh</Label>
                       <Select
                         value={item.branchId ?? undefined}
-                        onValueChange={(v) => updateItem(item.id, "branchId", v ?? null)}
+                        onValueChange={(v) =>
+                          updateItem(item.id, "branchId", v ?? null)
+                        }
                         disabled={readOnly}
                       >
                         <SelectTrigger className="w-full min-w-0">
                           <SelectValue placeholder="Chọn chi nhánh">
                             {(value) =>
                               value != null && value !== ""
-                                ? branchNameById.get(String(value)) ?? String(value)
+                                ? (branchNameById.get(String(value)) ??
+                                  String(value))
                                 : null
                             }
                           </SelectValue>
@@ -409,7 +451,9 @@ export function BookingDialog({
                         id={`bd-from-${item.id}`}
                         type="date"
                         value={item.fromDate}
-                        onChange={(e) => updateItem(item.id, "fromDate", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "fromDate", e.target.value)
+                        }
                         disabled={readOnly}
                       />
                     </div>
@@ -420,7 +464,9 @@ export function BookingDialog({
                         id={`bd-to-${item.id}`}
                         type="date"
                         value={item.toDate}
-                        onChange={(e) => updateItem(item.id, "toDate", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "toDate", e.target.value)
+                        }
                         disabled={readOnly}
                       />
                     </div>
@@ -432,7 +478,9 @@ export function BookingDialog({
                         inputMode="numeric"
                         placeholder="850000"
                         value={item.pricePerNight}
-                        onChange={(e) => updateItem(item.id, "pricePerNight", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(item.id, "pricePerNight", e.target.value)
+                        }
                         disabled={readOnly}
                       />
                     </div>
@@ -450,7 +498,7 @@ export function BookingDialog({
                       </Button>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -484,17 +532,34 @@ export function BookingDialog({
           </div>
         </div>
 
-        {error ? <div className="text-sm text-destructive whitespace-pre-wrap">{error}</div> : null}
+        {error ? (
+          <div className="text-sm text-destructive whitespace-pre-wrap">
+            {error}
+          </div>
+        ) : null}
 
         <DialogFooter>
-          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isSaving}
+            onClick={() => onOpenChange(false)}
+          >
             Hủy
           </Button>
-          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
-            {isSaving ? "Đang lưu..." : editBooking ? "Cập nhật" : "Tạo đặt phòng"}
+          <Button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onSubmit()}
+          >
+            {isSaving
+              ? "Đang lưu..."
+              : editBooking
+                ? "Cập nhật"
+                : "Tạo đặt phòng"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

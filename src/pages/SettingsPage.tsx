@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -9,9 +9,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -19,48 +19,48 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { useBranches } from "@/hooks/useBranches"
-import { useRooms } from "@/hooks/useRooms"
-import type { Branch, Room, RoomStatus, UUID } from "@/lib/types"
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useBranches } from "@/hooks/useBranches";
+import { useRooms } from "@/hooks/useRooms";
+import type { Branch, Room, RoomStatus, UUID } from "@/lib/types";
 
 function tokenizeRoomInputs(raw: string): string[] {
-  const out: string[] = []
+  const out: string[] = [];
   const chunks = raw
     .split(/\r?\n/g)
     .flatMap((line) => line.split(/[,\t]/g))
     .map((s) => s.trim())
-    .filter(Boolean)
+    .filter(Boolean);
 
   for (const c of chunks) {
-    const m = c.match(/^(\d+)\s*-\s*(\d+)$/)
+    const m = c.match(/^(\d+)\s*-\s*(\d+)$/);
     if (m) {
-      const a = Number(m[1])
-      const b = Number(m[2])
+      const a = Number(m[1]);
+      const b = Number(m[2]);
       if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0) {
-        const start = Math.min(a, b)
-        const end = Math.max(a, b)
+        const start = Math.min(a, b);
+        const end = Math.max(a, b);
         if (end - start <= 5000) {
-          for (let i = start; i <= end; i++) out.push(String(i))
-          continue
+          for (let i = start; i <= end; i++) out.push(String(i));
+          continue;
         }
       }
     }
-    out.push(c)
+    out.push(c);
   }
 
-  return out
+  return out;
 }
 
 function BranchFormDialog({
@@ -71,49 +71,55 @@ function BranchFormDialog({
   onCreate,
   onUpdate,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  mode: "create" | "edit"
-  initial: Branch | null
-  onCreate: (input: Pick<Branch, "name" | "address">) => Promise<void>
-  onUpdate: (input: Partial<Pick<Branch, "name" | "address">> & { id: UUID }) => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode: "create" | "edit";
+  initial: Branch | null;
+  onCreate: (input: Pick<Branch, "name" | "address">) => Promise<void>;
+  onUpdate: (
+    input: Partial<Pick<Branch, "name" | "address">> & { id: UUID },
+  ) => Promise<void>;
 }) {
-  const [name, setName] = useState("")
-  const [address, setAddress] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     if (mode === "edit" && initial) {
-      setName(initial.name)
-      setAddress(initial.address ?? "")
+      setName(initial.name);
+      setAddress(initial.address ?? "");
     } else {
-      setName("")
-      setAddress("")
+      setName("");
+      setAddress("");
     }
-    setError(null)
-    setIsSaving(false)
-  }, [open, mode, initial])
+    setError(null);
+    setIsSaving(false);
+  }, [open, mode, initial]);
 
   async function onSubmit() {
     if (!name.trim()) {
-      setError("Vui lòng nhập tên chi nhánh")
-      return
+      setError("Vui lòng nhập tên chi nhánh");
+      return;
     }
-    setError(null)
-    setIsSaving(true)
+    setError(null);
+    setIsSaving(true);
     try {
       if (mode === "edit" && initial) {
-        await onUpdate({ id: initial.id, name: name.trim(), address: address.trim() || null })
+        await onUpdate({
+          id: initial.id,
+          name: name.trim(),
+          address: address.trim() || null,
+        });
       } else {
-        await onCreate({ name: name.trim(), address: address.trim() || null })
+        await onCreate({ name: name.trim(), address: address.trim() || null });
       }
-      onOpenChange(false)
+      onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lưu chi nhánh thất bại")
+      setError(e instanceof Error ? e.message : "Lưu chi nhánh thất bại");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -121,34 +127,53 @@ function BranchFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[min(560px,calc(100vw-24px))] sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Sửa chi nhánh" : "Thêm chi nhánh"}</DialogTitle>
+          <DialogTitle>
+            {mode === "edit" ? "Sửa chi nhánh" : "Thêm chi nhánh"}
+          </DialogTitle>
           <DialogDescription>Tên + địa chỉ chi nhánh.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3">
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="branch-name">Tên</Label>
-            <Input id="branch-name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              id="branch-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="branch-address">Địa chỉ</Label>
-            <Input id="branch-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <Input
+              id="branch-address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
           </div>
         </div>
 
         {error ? <div className="text-xs text-destructive">{error}</div> : null}
 
         <DialogFooter>
-          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isSaving}
+            onClick={() => onOpenChange(false)}
+          >
             Hủy
           </Button>
-          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+          <Button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onSubmit()}
+          >
             {isSaving ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function BulkRoomsDialog({
@@ -158,70 +183,76 @@ function BulkRoomsDialog({
   defaultBranchId,
   onCreateBulk,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  branches: Branch[]
-  defaultBranchId: UUID | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  branches: Branch[];
+  defaultBranchId: UUID | null;
   onCreateBulk: (args: {
-    rooms: Array<Pick<Room, "branch_id" | "room_number" | "room_type" | "status" | "notes">>
-    ignoreDuplicates?: boolean
-  }) => Promise<void>
+    rooms: Array<
+      Pick<Room, "branch_id" | "room_number" | "room_type" | "status" | "notes">
+    >;
+    ignoreDuplicates?: boolean;
+  }) => Promise<void>;
 }) {
-  const [branchId, setBranchId] = useState<UUID>("" as UUID)
-  const [roomType, setRoomType] = useState("")
-  const [status, setStatus] = useState<RoomStatus>("available")
-  const [notes, setNotes] = useState("")
-  const [ignoreDuplicates, setIgnoreDuplicates] = useState(true)
-  const [rawRooms, setRawRooms] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const [branchId, setBranchId] = useState<UUID>("" as UUID);
+  const [roomType, setRoomType] = useState("");
+  const [status, setStatus] = useState<RoomStatus>("available");
+  const [notes, setNotes] = useState("");
+  const [ignoreDuplicates, setIgnoreDuplicates] = useState(true);
+  const [rawRooms, setRawRooms] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const parsedRooms = useMemo(() => {
-    const tokens = tokenizeRoomInputs(rawRooms)
-    const uniq = new Set<string>()
-    const cleaned: string[] = []
+    const tokens = tokenizeRoomInputs(rawRooms);
+    const uniq = new Set<string>();
+    const cleaned: string[] = [];
     for (const t of tokens) {
-      const v = t.trim()
-      if (!v) continue
-      if (uniq.has(v)) continue
-      uniq.add(v)
-      cleaned.push(v)
+      const v = t.trim();
+      if (!v) continue;
+      if (uniq.has(v)) continue;
+      uniq.add(v);
+      cleaned.push(v);
     }
-    return cleaned
-  }, [rawRooms])
+    return cleaned;
+  }, [rawRooms]);
 
   useEffect(() => {
-    if (!open) return
-    setBranchId(defaultBranchId ?? branches[0]?.id ?? ("" as UUID))
-    setRoomType("")
-    setStatus("available")
-    setNotes("")
-    setIgnoreDuplicates(true)
-    setRawRooms("")
-    setError(null)
-    setIsSaving(false)
-  }, [open, defaultBranchId, branches])
+    if (!open) return;
+    setBranchId(defaultBranchId ?? branches[0]?.id ?? ("" as UUID));
+    setRoomType("");
+    setStatus("available");
+    setNotes("");
+    setIgnoreDuplicates(true);
+    setRawRooms("");
+    setError(null);
+    setIsSaving(false);
+  }, [open, defaultBranchId, branches]);
 
   async function onSubmit() {
     if (!branchId) {
-      setError("Vui lòng chọn chi nhánh")
-      return
+      setError("Vui lòng chọn chi nhánh");
+      return;
     }
     if (!roomType.trim()) {
-      setError("Vui lòng nhập loại phòng")
-      return
+      setError("Vui lòng nhập loại phòng");
+      return;
     }
     if (parsedRooms.length === 0) {
-      setError("Vui lòng nhập danh sách số phòng (mỗi dòng 1 phòng, hoặc 101-120)")
-      return
+      setError(
+        "Vui lòng nhập danh sách số phòng (mỗi dòng 1 phòng, hoặc 101-120)",
+      );
+      return;
     }
     if (parsedRooms.length > 2000) {
-      setError("Danh sách quá lớn (tối đa 2000 phòng/lần). Hãy chia nhỏ và thử lại.")
-      return
+      setError(
+        "Danh sách quá lớn (tối đa 2000 phòng/lần). Hãy chia nhỏ và thử lại.",
+      );
+      return;
     }
 
-    setError(null)
-    setIsSaving(true)
+    setError(null);
+    setIsSaving(true);
     try {
       await onCreateBulk({
         ignoreDuplicates,
@@ -232,12 +263,14 @@ function BulkRoomsDialog({
           status,
           notes: notes.trim() || null,
         })),
-      })
-      onOpenChange(false)
+      });
+      onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Thêm phòng hàng loạt thất bại")
+      setError(
+        e instanceof Error ? e.message : "Thêm phòng hàng loạt thất bại",
+      );
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -246,18 +279,24 @@ function BulkRoomsDialog({
       <DialogContent className="max-w-[min(720px,calc(100vw-24px))] sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Thêm phòng hàng loạt</DialogTitle>
-          <DialogDescription>Dán danh sách phòng (mỗi dòng 1 phòng, hoặc 101-120).</DialogDescription>
+          <DialogDescription>
+            Dán danh sách phòng (mỗi dòng 1 phòng, hoặc 101-120).
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5 text-xs">
             <Label>Chi nhánh</Label>
-            <Select value={branchId || ""} onValueChange={(v) => setBranchId(v as UUID)}>
+            <Select
+              value={branchId || ""}
+              onValueChange={(v) => setBranchId(v as UUID)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn chi nhánh">
                   {(value) =>
                     value != null && value !== ""
-                      ? branches.find((b) => b.id === value)?.name ?? String(value)
+                      ? (branches.find((b) => b.id === value)?.name ??
+                        String(value))
                       : null
                   }
                 </SelectValue>
@@ -274,7 +313,10 @@ function BulkRoomsDialog({
 
           <div className="grid gap-1.5 text-xs">
             <Label>Trạng thái</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
+            <Select
+              value={status}
+              onValueChange={(v) => setStatus(v as RoomStatus)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue>
                   {(v) =>
@@ -298,7 +340,11 @@ function BulkRoomsDialog({
 
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="bulk-room-type">Loại phòng</Label>
-            <Input id="bulk-room-type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
+            <Input
+              id="bulk-room-type"
+              value={roomType}
+              onChange={(e) => setRoomType(e.target.value)}
+            />
           </div>
 
           <div className="flex items-center gap-2 text-sm h-9 border px-2">
@@ -307,7 +353,10 @@ function BulkRoomsDialog({
               checked={ignoreDuplicates}
               onCheckedChange={(c) => setIgnoreDuplicates(c === true)}
             />
-            <Label htmlFor="bulk-ignore-dup" className="font-normal cursor-pointer">
+            <Label
+              htmlFor="bulk-ignore-dup"
+              className="font-normal cursor-pointer"
+            >
               Bỏ qua phòng trùng
             </Label>
           </div>
@@ -331,22 +380,40 @@ function BulkRoomsDialog({
 
         <div className="grid gap-1.5 text-xs">
           <Label htmlFor="bulk-notes">Ghi chú (áp dụng cho tất cả phòng)</Label>
-          <Textarea id="bulk-notes" className="min-h-16" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <Textarea
+            id="bulk-notes"
+            className="min-h-16"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
         </div>
 
-        {error ? <div className="text-xs text-destructive whitespace-pre-wrap">{error}</div> : null}
+        {error ? (
+          <div className="text-xs text-destructive whitespace-pre-wrap">
+            {error}
+          </div>
+        ) : null}
 
         <DialogFooter>
-          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isSaving}
+            onClick={() => onOpenChange(false)}
+          >
             Hủy
           </Button>
-          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+          <Button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onSubmit()}
+          >
             {isSaving ? "Đang lưu..." : "Thêm phòng"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function RoomFormDialog({
@@ -359,57 +426,66 @@ function RoomFormDialog({
   onCreate,
   onUpdate,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  mode: "create" | "edit"
-  initial: Room | null
-  branches: Branch[]
-  defaultBranchId: UUID | null
-  onCreate: (input: Pick<Room, "branch_id" | "room_number" | "room_type" | "status" | "notes">) => Promise<void>
-  onUpdate: (input: Partial<Pick<Room, "room_number" | "room_type" | "status" | "notes">> & { id: UUID }) => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode: "create" | "edit";
+  initial: Room | null;
+  branches: Branch[];
+  defaultBranchId: UUID | null;
+  onCreate: (
+    input: Pick<
+      Room,
+      "branch_id" | "room_number" | "room_type" | "status" | "notes"
+    >,
+  ) => Promise<void>;
+  onUpdate: (
+    input: Partial<
+      Pick<Room, "room_number" | "room_type" | "status" | "notes">
+    > & { id: UUID },
+  ) => Promise<void>;
 }) {
-  const [branchId, setBranchId] = useState<UUID>("" as UUID)
-  const [roomNumber, setRoomNumber] = useState("")
-  const [roomType, setRoomType] = useState("")
-  const [status, setStatus] = useState<RoomStatus>("available")
-  const [notes, setNotes] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const [branchId, setBranchId] = useState<UUID>("" as UUID);
+  const [roomNumber, setRoomNumber] = useState("");
+  const [roomType, setRoomType] = useState("");
+  const [status, setStatus] = useState<RoomStatus>("available");
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     if (mode === "edit" && initial) {
-      setBranchId(initial.branch_id)
-      setRoomNumber(initial.room_number)
-      setRoomType(initial.room_type)
-      setStatus(initial.status)
-      setNotes(initial.notes ?? "")
+      setBranchId(initial.branch_id);
+      setRoomNumber(initial.room_number);
+      setRoomType(initial.room_type);
+      setStatus(initial.status);
+      setNotes(initial.notes ?? "");
     } else {
-      setBranchId(defaultBranchId ?? branches[0]?.id ?? ("" as UUID))
-      setRoomNumber("")
-      setRoomType("")
-      setStatus("available")
-      setNotes("")
+      setBranchId(defaultBranchId ?? branches[0]?.id ?? ("" as UUID));
+      setRoomNumber("");
+      setRoomType("");
+      setStatus("available");
+      setNotes("");
     }
-    setError(null)
-    setIsSaving(false)
-  }, [open, mode, initial, branches, defaultBranchId])
+    setError(null);
+    setIsSaving(false);
+  }, [open, mode, initial, branches, defaultBranchId]);
 
   async function onSubmit() {
     if (!branchId) {
-      setError("Vui lòng chọn chi nhánh")
-      return
+      setError("Vui lòng chọn chi nhánh");
+      return;
     }
     if (!roomNumber.trim()) {
-      setError("Vui lòng nhập số phòng")
-      return
+      setError("Vui lòng nhập số phòng");
+      return;
     }
     if (!roomType.trim()) {
-      setError("Vui lòng nhập loại phòng")
-      return
+      setError("Vui lòng nhập loại phòng");
+      return;
     }
-    setError(null)
-    setIsSaving(true)
+    setError(null);
+    setIsSaving(true);
     try {
       if (mode === "edit" && initial) {
         await onUpdate({
@@ -418,7 +494,7 @@ function RoomFormDialog({
           room_type: roomType.trim(),
           status,
           notes: notes.trim() || null,
-        })
+        });
       } else {
         await onCreate({
           branch_id: branchId,
@@ -426,13 +502,13 @@ function RoomFormDialog({
           room_type: roomType.trim(),
           status,
           notes: notes.trim() || null,
-        })
+        });
       }
-      onOpenChange(false)
+      onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Lưu phòng thất bại")
+      setError(e instanceof Error ? e.message : "Lưu phòng thất bại");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -440,8 +516,12 @@ function RoomFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[min(640px,calc(100vw-24px))] sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Sửa phòng" : "Thêm phòng"}</DialogTitle>
-          <DialogDescription>Số phòng, loại phòng, trạng thái.</DialogDescription>
+          <DialogTitle>
+            {mode === "edit" ? "Sửa phòng" : "Thêm phòng"}
+          </DialogTitle>
+          <DialogDescription>
+            Số phòng, loại phòng, trạng thái.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 md:grid-cols-2">
@@ -456,7 +536,8 @@ function RoomFormDialog({
                 <SelectValue placeholder="Chọn chi nhánh">
                   {(value) =>
                     value != null && value !== ""
-                      ? branches.find((b) => b.id === value)?.name ?? String(value)
+                      ? (branches.find((b) => b.id === value)?.name ??
+                        String(value))
                       : null
                   }
                 </SelectValue>
@@ -472,7 +553,10 @@ function RoomFormDialog({
           </div>
           <div className="grid gap-1.5 text-xs">
             <Label>Trạng thái</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
+            <Select
+              value={status}
+              onValueChange={(v) => setStatus(v as RoomStatus)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue>
                   {(v) =>
@@ -496,32 +580,54 @@ function RoomFormDialog({
 
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="room-form-number">Số phòng</Label>
-            <Input id="room-form-number" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} />
+            <Input
+              id="room-form-number"
+              value={roomNumber}
+              onChange={(e) => setRoomNumber(e.target.value)}
+            />
           </div>
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="room-form-type">Loại phòng</Label>
-            <Input id="room-form-type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
+            <Input
+              id="room-form-type"
+              value={roomType}
+              onChange={(e) => setRoomType(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="grid gap-1.5 text-xs">
           <Label htmlFor="room-form-notes">Ghi chú</Label>
-          <Textarea id="room-form-notes" className="min-h-20" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <Textarea
+            id="room-form-notes"
+            className="min-h-20"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
         </div>
 
         {error ? <div className="text-xs text-destructive">{error}</div> : null}
 
         <DialogFooter>
-          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isSaving}
+            onClick={() => onOpenChange(false)}
+          >
             Hủy
           </Button>
-          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+          <Button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onSubmit()}
+          >
             {isSaving ? "Đang lưu..." : "Lưu"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export function SettingsPage() {
@@ -533,9 +639,9 @@ export function SettingsPage() {
     updateBranch,
     deleteBranch,
     refresh: refreshBranches,
-  } = useBranches()
+  } = useBranches();
 
-  const [roomsBranchId, setRoomsBranchId] = useState<UUID | "all">("all")
+  const [roomsBranchId, setRoomsBranchId] = useState<UUID | "all">("all");
   const {
     rooms,
     isLoading: isRoomsLoading,
@@ -545,54 +651,56 @@ export function SettingsPage() {
     updateRoom,
     deleteRoom,
     refresh: refreshRooms,
-  } = useRooms(roomsBranchId)
+  } = useRooms(roomsBranchId);
 
-  const [tab, setTab] = useState<"branches" | "rooms">("branches")
+  const [tab, setTab] = useState<"branches" | "rooms">("branches");
 
   const [deleteConfirm, setDeleteConfirm] = useState<
-    | { kind: "branch"; branch: Branch }
-    | { kind: "room"; room: Room }
-    | null
-  >(null)
+    { kind: "branch"; branch: Branch } | { kind: "room"; room: Room } | null
+  >(null);
 
-  const [branchDialogOpen, setBranchDialogOpen] = useState(false)
-  const [branchDialogMode, setBranchDialogMode] = useState<"create" | "edit">("create")
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
+  const [branchDialogOpen, setBranchDialogOpen] = useState(false);
+  const [branchDialogMode, setBranchDialogMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
 
-  const [roomDialogOpen, setRoomDialogOpen] = useState(false)
-  const [roomDialogMode, setRoomDialogMode] = useState<"create" | "edit">("create")
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null)
+  const [roomDialogOpen, setRoomDialogOpen] = useState(false);
+  const [roomDialogMode, setRoomDialogMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
 
-  const [bulkRoomsOpen, setBulkRoomsOpen] = useState(false)
+  const [bulkRoomsOpen, setBulkRoomsOpen] = useState(false);
 
   const branchNameById = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const b of branches) m.set(b.id, b.name)
-    return m
-  }, [branches])
+    const m = new Map<string, string>();
+    for (const b of branches) m.set(b.id, b.name);
+    return m;
+  }, [branches]);
 
   function openAddBranch() {
-    setBranchDialogMode("create")
-    setEditingBranch(null)
-    setBranchDialogOpen(true)
+    setBranchDialogMode("create");
+    setEditingBranch(null);
+    setBranchDialogOpen(true);
   }
 
   function openEditBranch(b: Branch) {
-    setBranchDialogMode("edit")
-    setEditingBranch(b)
-    setBranchDialogOpen(true)
+    setBranchDialogMode("edit");
+    setEditingBranch(b);
+    setBranchDialogOpen(true);
   }
 
   function openAddRoom() {
-    setRoomDialogMode("create")
-    setEditingRoom(null)
-    setRoomDialogOpen(true)
+    setRoomDialogMode("create");
+    setEditingRoom(null);
+    setRoomDialogOpen(true);
   }
 
   function openEditRoom(r: Room) {
-    setRoomDialogMode("edit")
-    setEditingRoom(r)
-    setRoomDialogOpen(true)
+    setRoomDialogMode("edit");
+    setEditingRoom(r);
+    setRoomDialogOpen(true);
   }
 
   return (
@@ -611,7 +719,11 @@ export function SettingsPage() {
         mode={roomDialogMode}
         initial={editingRoom}
         branches={branches}
-        defaultBranchId={roomsBranchId === "all" ? branches[0]?.id ?? null : (roomsBranchId as UUID)}
+        defaultBranchId={
+          roomsBranchId === "all"
+            ? (branches[0]?.id ?? null)
+            : (roomsBranchId as UUID)
+        }
         onCreate={createRoom}
         onUpdate={updateRoom}
       />
@@ -619,14 +731,24 @@ export function SettingsPage() {
         open={bulkRoomsOpen}
         onOpenChange={setBulkRoomsOpen}
         branches={branches}
-        defaultBranchId={roomsBranchId === "all" ? branches[0]?.id ?? null : (roomsBranchId as UUID)}
+        defaultBranchId={
+          roomsBranchId === "all"
+            ? (branches[0]?.id ?? null)
+            : (roomsBranchId as UUID)
+        }
         onCreateBulk={createRoomsBulk}
       />
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "branches" | "rooms")} className="grid gap-2 sm:gap-3">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "branches" | "rooms")}
+        className="grid gap-2 sm:gap-3"
+      >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-0.5">
-            <div className="text-base font-semibold leading-tight sm:text-lg">Cài đặt</div>
+            <div className="text-base font-semibold leading-tight sm:text-lg">
+              Cài đặt
+            </div>
             <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
               Quản lý chi nhánh và phòng.
             </div>
@@ -644,34 +766,58 @@ export function SettingsPage() {
               <Button size="sm" onClick={() => openAddBranch()}>
                 Thêm chi nhánh
               </Button>
-              <Button variant="outline" size="sm" onClick={() => void refreshBranches()}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refreshBranches()}
+              >
                 Làm mới
               </Button>
             </div>
           </div>
 
-          {branchesError ? <div className="text-sm text-destructive">{branchesError}</div> : null}
+          {branchesError ? (
+            <div className="text-sm text-destructive">{branchesError}</div>
+          ) : null}
 
           <div className="border bg-card">
             {/* Mobile: cards (avoid sticky header issues) */}
             <div className="md:hidden">
               {isBranchesLoading ? (
-                <div className="p-3 text-sm text-muted-foreground">Đang tải...</div>
+                <div className="p-3 text-sm text-muted-foreground">
+                  Đang tải...
+                </div>
               ) : branches.length === 0 ? (
-                <div className="p-3 text-sm text-muted-foreground">Chưa có chi nhánh</div>
+                <div className="p-3 text-sm text-muted-foreground">
+                  Chưa có chi nhánh
+                </div>
               ) : (
                 <div className="divide-y">
                   {branches.map((b) => (
                     <div key={b.id} className="p-3 grid gap-2">
                       <div className="min-w-0">
                         <div className="font-medium truncate">{b.name}</div>
-                        {b.address ? <div className="text-xs text-muted-foreground wrap-break-word">{b.address}</div> : null}
+                        {b.address ? (
+                          <div className="text-xs text-muted-foreground wrap-break-word">
+                            {b.address}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="xs" onClick={() => openEditBranch(b)}>
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          onClick={() => openEditBranch(b)}
+                        >
                           Sửa
                         </Button>
-                        <Button variant="destructive" size="xs" onClick={() => setDeleteConfirm({ kind: "branch", branch: b })}>
+                        <Button
+                          variant="destructive"
+                          size="xs"
+                          onClick={() =>
+                            setDeleteConfirm({ kind: "branch", branch: b })
+                          }
+                        >
                           Xóa
                         </Button>
                       </div>
@@ -711,13 +857,19 @@ export function SettingsPage() {
                         <td className="p-3">{b.address ?? ""}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" size="xs" onClick={() => openEditBranch(b)}>
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => openEditBranch(b)}
+                            >
                               Sửa
                             </Button>
                             <Button
                               variant="destructive"
                               size="xs"
-                              onClick={() => setDeleteConfirm({ kind: "branch", branch: b })}
+                              onClick={() =>
+                                setDeleteConfirm({ kind: "branch", branch: b })
+                              }
                             >
                               Xóa
                             </Button>
@@ -736,7 +888,9 @@ export function SettingsPage() {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="grid gap-1">
               <div className="text-sm font-medium">Danh sách phòng</div>
-              <div className="text-xs text-muted-foreground">Chọn chi nhánh để lọc phòng.</div>
+              <div className="text-xs text-muted-foreground">
+                Chọn chi nhánh để lọc phòng.
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="grid gap-1.5 text-xs min-w-[10rem]">
@@ -750,7 +904,8 @@ export function SettingsPage() {
                       {(value) =>
                         value === "all"
                           ? "Tất cả"
-                          : branches.find((b) => b.id === value)?.name ?? String(value ?? "")
+                          : (branches.find((b) => b.id === value)?.name ??
+                            String(value ?? ""))
                       }
                     </SelectValue>
                   </SelectTrigger>
@@ -767,24 +922,38 @@ export function SettingsPage() {
               <Button size="sm" onClick={() => openAddRoom()}>
                 Thêm phòng
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setBulkRoomsOpen(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBulkRoomsOpen(true)}
+              >
                 Thêm hàng loạt
               </Button>
-              <Button variant="outline" size="sm" onClick={() => void refreshRooms()}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refreshRooms()}
+              >
                 Làm mới
               </Button>
             </div>
           </div>
 
-          {roomsError ? <div className="text-sm text-destructive">{roomsError}</div> : null}
+          {roomsError ? (
+            <div className="text-sm text-destructive">{roomsError}</div>
+          ) : null}
 
           <div className="border bg-card">
             {/* Mobile: cards */}
             <div className="md:hidden">
               {isRoomsLoading ? (
-                <div className="p-3 text-sm text-muted-foreground">Đang tải...</div>
+                <div className="p-3 text-sm text-muted-foreground">
+                  Đang tải...
+                </div>
               ) : rooms.length === 0 ? (
-                <div className="p-3 text-sm text-muted-foreground">Chưa có phòng</div>
+                <div className="p-3 text-sm text-muted-foreground">
+                  Chưa có phòng
+                </div>
               ) : (
                 <div className="divide-y">
                   {rooms.map((r) => (
@@ -799,20 +968,34 @@ export function SettingsPage() {
                           </div>
                         </div>
                         <div className="shrink-0 text-xs px-2 py-1 border bg-background">
-                          {r.status === "available" ? "Trống" : r.status === "occupied" ? "Đang ở" : "Bảo trì"}
+                          {r.status === "available"
+                            ? "Trống"
+                            : r.status === "occupied"
+                              ? "Đang ở"
+                              : "Bảo trì"}
                         </div>
                       </div>
 
-                      {r.notes ? <div className="text-xs text-muted-foreground wrap-break-word">{r.notes}</div> : null}
+                      {r.notes ? (
+                        <div className="text-xs text-muted-foreground wrap-break-word">
+                          {r.notes}
+                        </div>
+                      ) : null}
 
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="xs" onClick={() => openEditRoom(r)}>
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          onClick={() => openEditRoom(r)}
+                        >
                           Sửa
                         </Button>
                         <Button
                           variant="destructive"
                           size="xs"
-                          onClick={() => setDeleteConfirm({ kind: "room", room: r })}
+                          onClick={() =>
+                            setDeleteConfirm({ kind: "room", room: r })
+                          }
                         >
                           Xóa
                         </Button>
@@ -852,11 +1035,17 @@ export function SettingsPage() {
                   ) : (
                     rooms.map((r) => (
                       <tr key={r.id} className="border-t">
-                        <td className="p-3">{branchNameById.get(r.branch_id) ?? r.branch_id}</td>
+                        <td className="p-3">
+                          {branchNameById.get(r.branch_id) ?? r.branch_id}
+                        </td>
                         <td className="p-3">{r.room_number}</td>
                         <td className="p-3">{r.room_type}</td>
                         <td className="p-3">
-                          {r.status === "available" ? "Trống" : r.status === "occupied" ? "Đang ở" : "Bảo trì"}
+                          {r.status === "available"
+                            ? "Trống"
+                            : r.status === "occupied"
+                              ? "Đang ở"
+                              : "Bảo trì"}
                         </td>
                         <td className="p-3 max-w-[320px]">
                           <div className="truncate" title={r.notes ?? ""}>
@@ -865,13 +1054,19 @@ export function SettingsPage() {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" size="xs" onClick={() => openEditRoom(r)}>
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => openEditRoom(r)}
+                            >
                               Sửa
                             </Button>
                             <Button
                               variant="destructive"
                               size="xs"
-                              onClick={() => setDeleteConfirm({ kind: "room", room: r })}
+                              onClick={() =>
+                                setDeleteConfirm({ kind: "room", room: r })
+                              }
                             >
                               Xóa
                             </Button>
@@ -887,7 +1082,10 @@ export function SettingsPage() {
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={deleteConfirm !== null} onOpenChange={(o) => !o && setDeleteConfirm(null)}>
+      <AlertDialog
+        open={deleteConfirm !== null}
+        onOpenChange={(o) => !o && setDeleteConfirm(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
@@ -906,12 +1104,12 @@ export function SettingsPage() {
               onClick={() => {
                 if (deleteConfirm?.kind === "branch") {
                   void deleteBranch(deleteConfirm.branch.id).then(() => {
-                    setDeleteConfirm(null)
-                  })
+                    setDeleteConfirm(null);
+                  });
                 } else if (deleteConfirm?.kind === "room") {
                   void deleteRoom(deleteConfirm.room.id).then(() => {
-                    setDeleteConfirm(null)
-                  })
+                    setDeleteConfirm(null);
+                  });
                 }
               }}
             >
@@ -921,6 +1119,5 @@ export function SettingsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
-

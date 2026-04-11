@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns"
 import { vi } from "date-fns/locale"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,21 @@ function DeltaLabel({ value }: { value: number | null }) {
   return <span className={cls}>{`${sign}${value.toFixed(1)}%`}</span>
 }
 
+/** Dưới breakpoint này: cột chart rộng tối thiểu để vuốt ngang, tránh cột ~8px. */
+function useNarrowChart() {
+  const [narrow, setNarrow] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 639px)").matches : true,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)")
+    const sync = () => setNarrow(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [])
+  return narrow
+}
+
 function DailyBarChart({
   series,
   compareSeries,
@@ -47,6 +62,8 @@ function DailyBarChart({
   currentLabel: string
   compareLabel?: string | null
 }) {
+  const narrow = useNarrowChart()
+
   const max = Math.max(
     1,
     ...series.map((s) => s.total),
@@ -65,8 +82,18 @@ function DailyBarChart({
 
   const showCompare = Boolean(compareSeries?.length && compareLabel)
 
-  /** h-24 = 6rem; use px for bar height so bars render even when % parent chain is ambiguous */
-  const chartPx = 96
+  /** Độ rộng tối thiểu mỗi cột: mobile cần lớn hơn (2 cột so sánh càng cần rộng). */
+  const minColPx = narrow ? (showCompare ? 18 : 14) : showCompare ? 12 : 10
+  const gridMinWidth = points.length * minColPx
+
+  /** px cho chiều cao cột; mobile hơi cao hơn để dễ nhìn khi vuốt ngang */
+  const chartPx = narrow ? 112 : 96
+
+  const showDayLabel = (index: number, len: number) => {
+    if (len <= 16 || !narrow) return true
+    if (index === len - 1) return true
+    return index % 2 === 0
+  }
 
   return (
     <Card size="sm">
@@ -74,8 +101,8 @@ function DailyBarChart({
         <CardTitle>Ghi nhận theo ngày</CardTitle>
         <CardDescription>
           {showCompare
-            ? `So sánh ${currentLabel} với ${compareLabel} · chạm cột để xem số (mobile)`
-            : "Tổng tiền đã nhập (mọi trạng thái thu) · chạm cột để xem số (mobile)"}
+            ? `So sánh ${currentLabel} với ${compareLabel} · giữ cột để xem số`
+            : "Tổng tiền đã nhập (mọi trạng thái thu) · giữ cột để xem số"}
         </CardDescription>
       </CardHeader>
       <CardContent className="min-w-0 pb-3">
@@ -94,61 +121,79 @@ function DailyBarChart({
         {points.length === 0 ? (
           <p className="text-sm text-muted-foreground py-3 text-center">Chưa có dữ liệu ghi nhận trong tháng này.</p>
         ) : (
-          <div className="max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+          <div className="grid gap-1.5">
+            {narrow && points.length > 12 ? (
+              <p className="text-[11px] text-muted-foreground leading-snug sm:hidden">
+                Vuốt ngang để xem cả tháng. Nhãn số ngày cách một ô khi tháng dài.
+              </p>
+            ) : null}
             <div
-              className="min-w-[280px] sm:min-w-[520px] md:min-w-[720px] grid gap-0.5 sm:gap-1"
-              style={{
-                gridTemplateColumns: `repeat(${points.length}, minmax(8px, 1fr))`,
-              }}
+              className="max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch] px-0.5 snap-x snap-proximity"
+              role="group"
+              aria-label="Biểu đồ ghi nhận theo ngày, cuộn ngang trên màn hình nhỏ"
             >
-              {points.map((p) => {
-                const barH = Math.max(2, Math.round((p.total / max) * chartPx))
-                const compareBarH = Math.max(2, Math.round((p.compareTotal / max) * chartPx))
-                return (
-                  <div key={p.date} className="grid gap-1 min-w-0">
-                    {/* stretch columns to chartPx so bar heights resolve; avoid items-end which collapses height */}
-                    <div className="flex gap-px justify-center" style={{ height: chartPx }}>
-                      {showCompare ? (
-                        <>
+              <div
+                className="grid min-w-full gap-1 sm:gap-1.5 pb-0.5"
+                style={{
+                  width: `max(100%, ${gridMinWidth}px)`,
+                  gridTemplateColumns: `repeat(${points.length}, minmax(${minColPx}px, 1fr))`,
+                }}
+              >
+                {points.map((p, index) => {
+                  const barH = Math.max(2, Math.round((p.total / max) * chartPx))
+                  const compareBarH = Math.max(2, Math.round((p.compareTotal / max) * chartPx))
+                  const dayLabel = showDayLabel(index, points.length) ? p.day : "\u00a0"
+                  return (
+                    <div key={p.date} className="grid min-w-0 shrink-0 snap-start gap-0.5 sm:gap-1">
+                      {/* stretch columns to chartPx so bar heights resolve; avoid items-end which collapses height */}
+                      <div className="flex gap-px justify-center" style={{ height: chartPx }}>
+                        {showCompare ? (
+                          <>
+                            <div
+                              className="h-full w-1/2 min-w-0 flex flex-col justify-end"
+                              title={`${currentLabel} ${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
+                            >
+                              <div
+                                className="w-full bg-primary/70 border border-primary/20 hover:bg-primary/85 rounded-sm shrink-0"
+                                style={{ height: barH }}
+                              />
+                            </div>
+                            <div
+                              className="h-full w-1/2 min-w-0 flex flex-col justify-end"
+                              title={
+                                p.compareDate
+                                  ? `${compareLabel} ${format(parseISO(p.compareDate), "dd/MM")}: ${formatVnd(p.compareTotal)}`
+                                  : `${compareLabel}: 0`
+                              }
+                            >
+                              <div
+                                className="w-full bg-muted-foreground/45 border border-border hover:bg-muted-foreground/55 rounded-sm shrink-0"
+                                style={{ height: compareBarH }}
+                              />
+                            </div>
+                          </>
+                        ) : (
                           <div
-                            className="h-full w-1/2 min-w-0 flex flex-col justify-end"
-                            title={`${currentLabel} ${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
+                            className="h-full w-full flex flex-col justify-end"
+                            title={`${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
                           >
                             <div
-                              className="w-full bg-primary/70 border border-primary/20 hover:bg-primary/85 rounded-sm shrink-0"
+                              className="w-full bg-muted/40 border hover:bg-muted/60 shrink-0"
                               style={{ height: barH }}
                             />
                           </div>
-                          <div
-                            className="h-full w-1/2 min-w-0 flex flex-col justify-end"
-                            title={
-                              p.compareDate
-                                ? `${compareLabel} ${format(parseISO(p.compareDate), "dd/MM")}: ${formatVnd(p.compareTotal)}`
-                                : `${compareLabel}: 0`
-                            }
-                          >
-                            <div
-                              className="w-full bg-muted-foreground/45 border border-border hover:bg-muted-foreground/55 rounded-sm shrink-0"
-                              style={{ height: compareBarH }}
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div
-                          className="h-full w-full flex flex-col justify-end"
-                          title={`${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
-                        >
-                          <div
-                            className="w-full bg-muted/40 border hover:bg-muted/60 shrink-0"
-                            style={{ height: barH }}
-                          />
-                        </div>
-                      )}
+                        )}
+                      </div>
+                      <div
+                        className="text-[10px] sm:text-[11px] md:text-xs text-muted-foreground text-center tabular-nums leading-none min-h-[1em]"
+                        title={format(parseISO(p.date), "dd/MM/yyyy")}
+                      >
+                        {dayLabel}
+                      </div>
                     </div>
-                    <div className="text-[11px] sm:text-xs text-muted-foreground text-center tabular-nums">{p.day}</div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           </div>
         )}
