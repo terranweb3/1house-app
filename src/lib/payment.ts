@@ -11,3 +11,19 @@ export function paymentLabel(p: PaymentStatus) {
   if (p === "partial") return "Thu một phần"
   return "Chưa thu"
 }
+
+/** Nhãn hiển thị kèm số tiền đã thu nếu có (đặt phòng / meta). */
+export function paymentLabelWithPartial(
+  p: PaymentStatus,
+  partialAmountVnd: number | null | undefined,
+) {
+  if (
+    p === "partial" &&
+    partialAmountVnd != null &&
+    Number.isFinite(Number(partialAmountVnd)) &&
+    Number(partialAmountVnd) > 0
+  ) {
+    return `Thu một phần · ${Number(partialAmountVnd).toLocaleString("vi-VN")} đ`
+  }
+  return paymentLabel(p)
+}

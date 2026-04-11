@@ -7,6 +7,8 @@ export type CreateBookingInput = {
   guestName: string
   guestPhone: string | null
   paymentStatus: PaymentStatus
+  /** Bắt buộc khi paymentStatus = partial (VND) */
+  paymentPartialAmount: number | null
   note: string | null
   items: Array<{
     branchId: UUID
@@ -20,6 +22,7 @@ export type UpdateBookingInput = {
   guestName?: string
   guestPhone?: string | null
   paymentStatus?: PaymentStatus
+  paymentPartialAmount?: number | null
   note?: string | null
 }
 
@@ -30,6 +33,8 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
       guest_name: input.guestName,
       guest_phone: input.guestPhone,
       payment_status: input.paymentStatus,
+      payment_partial_amount:
+        input.paymentStatus === "partial" ? input.paymentPartialAmount : null,
       note: input.note,
     })
     .select()
@@ -63,6 +68,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     guestName: input.guestName,
     guestPhone: input.guestPhone,
     paymentStatus: input.paymentStatus,
+    paymentPartialAmount: null as number | null,
     note: input.note,
     cleaned: false,
     checkedOut: false,
@@ -130,11 +136,25 @@ export async function updateBooking(id: UUID, input: UpdateBookingInput): Promis
 
   if (currentError) throw currentError
 
+  const nextStatus = input.paymentStatus ?? current.payment_status
+  let nextPartial: number | null =
+    current.payment_partial_amount != null
+      ? Number(current.payment_partial_amount)
+      : null
+  if (nextStatus !== "partial") {
+    nextPartial = null
+  } else if (input.paymentPartialAmount !== undefined) {
+    nextPartial = input.paymentPartialAmount
+  }
+
   const updates: Record<string, unknown> = {}
   if (input.guestName !== undefined) updates.guest_name = input.guestName
   if (input.guestPhone !== undefined) updates.guest_phone = input.guestPhone
   if (input.paymentStatus !== undefined) updates.payment_status = input.paymentStatus
   if (input.note !== undefined) updates.note = input.note
+  if (input.paymentStatus !== undefined || input.paymentPartialAmount !== undefined) {
+    updates.payment_partial_amount = nextPartial
+  }
 
   const { data, error } = await supabase
     .from("bookings")
@@ -173,6 +193,7 @@ export async function updateBooking(id: UUID, input: UpdateBookingInput): Promis
       guestName,
       guestPhone,
       paymentStatus,
+      paymentPartialAmount: null as number | null,
       note,
       cleaned: ex?.cleaned ?? false,
       checkedOut: ex?.checked_out ?? false,

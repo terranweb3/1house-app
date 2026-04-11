@@ -90,6 +90,7 @@ export function BookingDialog({
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
+  const [paymentPartialAmount, setPaymentPartialAmount] = useState("");
   const [note, setNote] = useState("");
   const [items, setItems] = useState<BookingItemInput[]>([emptyLine()]);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +110,12 @@ export function BookingDialog({
       setGuestName(editBooking.guest_name);
       setGuestPhone(editBooking.guest_phone ?? "");
       setPaymentStatus(editBooking.payment_status);
+      setPaymentPartialAmount(
+        editBooking.payment_partial_amount != null &&
+          Number(editBooking.payment_partial_amount) >= 0
+          ? String(editBooking.payment_partial_amount)
+          : "",
+      );
       setNote(editBooking.note ?? "");
       setItems(
         editBooking.items.length > 0
@@ -119,6 +126,7 @@ export function BookingDialog({
       setGuestName("");
       setGuestPhone("");
       setPaymentStatus("unpaid");
+      setPaymentPartialAmount("");
       setNote("");
       if (prefillCreate) {
         setItems([
@@ -236,9 +244,22 @@ export function BookingDialog({
     const validationError = validateLines();
     if (validationError) return setError(validationError);
 
+    const rawPartial = paymentPartialAmount.replaceAll(/[^\d]/g, "");
+    const partialNum = rawPartial ? Number(rawPartial) : NaN;
+    if (paymentStatus === "partial") {
+      if (!rawPartial || !Number.isFinite(partialNum) || partialNum <= 0) {
+        return setError("Vui lòng nhập số tiền đã thu khi chọn thu một phần.");
+      }
+    }
+
     setError(null);
     setIsSaving(true);
     try {
+      const resolvedPartial: number | null =
+        paymentStatus === "partial" && Number.isFinite(partialNum) && partialNum > 0
+          ? partialNum
+          : null;
+
       if (editBooking) {
         if (!updateBooking)
           throw new Error("updateBooking is required for edit mode");
@@ -246,6 +267,7 @@ export function BookingDialog({
           guestName: guestName.trim(),
           guestPhone: guestPhone.trim() || null,
           paymentStatus,
+          paymentPartialAmount: resolvedPartial,
           note: note.trim() || null,
         });
         toast.success("Cập nhật đặt phòng thành công");
@@ -266,6 +288,7 @@ export function BookingDialog({
           guestName: guestName.trim(),
           guestPhone: guestPhone.trim() || null,
           paymentStatus,
+          paymentPartialAmount: resolvedPartial,
           note: note.trim() || null,
           items: bookingItems,
         });
@@ -284,6 +307,7 @@ export function BookingDialog({
     guestName,
     guestPhone,
     paymentStatus,
+    paymentPartialAmount,
     note,
     onOpenChange,
     createBooking,
@@ -294,12 +318,12 @@ export function BookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal="trap-focus">
-      <DialogContent className="w-full min-w-0 max-h-[min(90vh,100dvh)] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto sm:max-h-[90vh] sm:max-w-[min(960px,calc(100vw-2rem))]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-full min-w-0 max-h-[min(90vh,100dvh)] max-w-[calc(100vw-2rem)] gap-3 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4 sm:max-h-[90vh] sm:max-w-[min(960px,calc(100vw-2rem))]">
+        <DialogHeader className="gap-1.5 pr-8 sm:pr-10">
+          <DialogTitle className="text-balance">
             {editBooking ? "Sửa đặt phòng" : "Tạo đặt phòng mới"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-pretty">
             Mỗi dòng là một phòng (có thể khác chi nhánh): chọn từ ngày đến ngày
             và giá mỗi đêm. Thêm nhiều dòng để đặt nhiều phòng.
           </DialogDescription>
@@ -344,13 +368,16 @@ export function BookingDialog({
           </div>
 
           <div className="border-t pt-4">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-base font-medium">Danh sách phòng</Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <Label className="text-base font-medium shrink min-w-0">
+                Danh sách phòng
+              </Label>
               {!readOnly ? (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="w-full shrink-0 sm:w-auto"
                   onClick={addItem}
                 >
                   + Thêm phòng
@@ -403,7 +430,7 @@ export function BookingDialog({
                 return (
                   <div
                     key={item.id}
-                    className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto] items-end border rounded-lg p-3 bg-muted/10"
+                    className="flex flex-col gap-3 border rounded-lg p-3 bg-muted/10 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto] md:items-end md:gap-2"
                   >
                     <div className="grid gap-1 text-xs min-w-0">
                       <Label>Chi nhánh</Label>
@@ -445,57 +472,64 @@ export function BookingDialog({
                       />
                     </div>
 
-                    <div className="grid gap-1 text-xs">
-                      <Label htmlFor={`bd-from-${item.id}`}>Từ ngày</Label>
-                      <Input
-                        id={`bd-from-${item.id}`}
-                        type="date"
-                        value={item.fromDate}
-                        onChange={(e) =>
-                          updateItem(item.id, "fromDate", e.target.value)
-                        }
-                        disabled={readOnly}
-                      />
+                    <div className="grid grid-cols-2 gap-2 min-w-0 md:contents">
+                      <div className="grid gap-1 text-xs min-w-0">
+                        <Label htmlFor={`bd-from-${item.id}`}>Từ ngày</Label>
+                        <Input
+                          id={`bd-from-${item.id}`}
+                          type="date"
+                          className="max-w-full scheme-light dark:scheme-dark"
+                          value={item.fromDate}
+                          onChange={(e) =>
+                            updateItem(item.id, "fromDate", e.target.value)
+                          }
+                          disabled={readOnly}
+                        />
+                      </div>
+
+                      <div className="grid gap-1 text-xs min-w-0">
+                        <Label htmlFor={`bd-to-${item.id}`}>Đến ngày</Label>
+                        <Input
+                          id={`bd-to-${item.id}`}
+                          type="date"
+                          className="max-w-full scheme-light dark:scheme-dark"
+                          value={item.toDate}
+                          onChange={(e) =>
+                            updateItem(item.id, "toDate", e.target.value)
+                          }
+                          disabled={readOnly}
+                        />
+                      </div>
                     </div>
 
-                    <div className="grid gap-1 text-xs">
-                      <Label htmlFor={`bd-to-${item.id}`}>Đến ngày</Label>
-                      <Input
-                        id={`bd-to-${item.id}`}
-                        type="date"
-                        value={item.toDate}
-                        onChange={(e) =>
-                          updateItem(item.id, "toDate", e.target.value)
-                        }
-                        disabled={readOnly}
-                      />
-                    </div>
+                    <div className="flex flex-row items-end gap-2 min-w-0 md:contents">
+                      <div className="grid min-w-0 flex-1 gap-1 text-xs md:min-w-0">
+                        <Label htmlFor={`bd-price-${item.id}`}>Giá / đêm</Label>
+                        <Input
+                          id={`bd-price-${item.id}`}
+                          inputMode="numeric"
+                          placeholder="850000"
+                          value={item.pricePerNight}
+                          onChange={(e) =>
+                            updateItem(item.id, "pricePerNight", e.target.value)
+                          }
+                          disabled={readOnly}
+                        />
+                      </div>
 
-                    <div className="grid gap-1 text-xs">
-                      <Label htmlFor={`bd-price-${item.id}`}>Giá / đêm</Label>
-                      <Input
-                        id={`bd-price-${item.id}`}
-                        inputMode="numeric"
-                        placeholder="850000"
-                        value={item.pricePerNight}
-                        onChange={(e) =>
-                          updateItem(item.id, "pricePerNight", e.target.value)
-                        }
-                        disabled={readOnly}
-                      />
-                    </div>
-
-                    <div className="flex justify-center pb-0.5 max-md:pt-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeItem(item.id)}
-                        disabled={readOnly || items.length === 1}
-                        className="text-destructive hover:text-destructive max-md:size-12 max-md:min-h-12 max-md:min-w-12"
-                      >
-                        ✕
-                      </Button>
+                      <div className="flex shrink-0 justify-end pb-0.5 md:justify-center md:pb-0.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(item.id)}
+                          disabled={readOnly || items.length === 1}
+                          className="text-destructive hover:text-destructive max-md:size-12 max-md:min-h-12 max-md:min-w-12"
+                          aria-label="Xoá dòng phòng"
+                        >
+                          ✕
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -503,11 +537,15 @@ export function BookingDialog({
             </div>
           </div>
 
-          <div className="grid w-full max-w-md gap-1.5 text-sm">
+          <div className="grid w-full min-w-0 max-w-md gap-1.5 text-sm">
             <Label>Thanh toán</Label>
             <Select
               value={paymentStatus}
-              onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}
+              onValueChange={(v) => {
+                const next = v as PaymentStatus;
+                setPaymentStatus(next);
+                if (next !== "partial") setPaymentPartialAmount("");
+              }}
               disabled={readOnly}
             >
               <SelectTrigger className="w-full min-w-0">
@@ -529,6 +567,32 @@ export function BookingDialog({
                 <SelectItem value="paid">Đã thu</SelectItem>
               </SelectContent>
             </Select>
+            {paymentStatus === "partial" && !readOnly ? (
+              <div className="grid gap-1.5">
+                <Label htmlFor="bd-partial-paid">Đã thu (đ) *</Label>
+                <Input
+                  id="bd-partial-paid"
+                  inputMode="numeric"
+                  className="tabular-nums"
+                  placeholder="VD: 500000"
+                  value={paymentPartialAmount}
+                  onChange={(e) => setPaymentPartialAmount(e.target.value)}
+                />
+              </div>
+            ) : readOnly &&
+              paymentStatus === "partial" &&
+              editBooking?.payment_partial_amount != null &&
+              Number(editBooking.payment_partial_amount) > 0 ? (
+              <p className="text-xs text-muted-foreground tabular-nums">
+                Đã thu:{" "}
+                <span className="font-medium text-foreground">
+                  {Number(editBooking.payment_partial_amount).toLocaleString(
+                    "vi-VN",
+                  )}{" "}
+                  đ
+                </span>
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -538,10 +602,11 @@ export function BookingDialog({
           </div>
         ) : null}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button
             variant="outline"
             type="button"
+            className="w-full min-h-11 touch-manipulation sm:min-h-8 sm:w-auto"
             disabled={isSaving}
             onClick={() => onOpenChange(false)}
           >
@@ -549,6 +614,7 @@ export function BookingDialog({
           </Button>
           <Button
             type="button"
+            className="w-full min-h-11 touch-manipulation sm:min-h-8 sm:w-auto"
             disabled={isSaving}
             onClick={() => void onSubmit()}
           >

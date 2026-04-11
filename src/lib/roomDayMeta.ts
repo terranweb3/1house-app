@@ -8,6 +8,8 @@ export type MetaUpsertRow = {
   guestName: string | null
   guestPhone: string | null
   paymentStatus: PaymentStatus
+  /** VND; chỉ có nghĩa khi paymentStatus = partial */
+  paymentPartialAmount: number | null
   note: string | null
   cleaned: boolean
   checkedOut: boolean
@@ -24,6 +26,7 @@ export async function upsertMetasBatch(rows: MetaUpsertRow[]) {
     guest_name: r.guestName,
     guest_phone: r.guestPhone,
     payment_status: r.paymentStatus,
+    payment_partial_amount: r.paymentPartialAmount,
     note: r.note,
     cleaned: r.cleaned,
     checked_out: r.checkedOut,

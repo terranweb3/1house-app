@@ -3,6 +3,7 @@ import { vi } from "date-fns/locale";
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useState,
   type ReactNode,
@@ -71,6 +72,39 @@ function formatMetaDateTime(iso: string | null | undefined): string | null {
   const d = parseISO(iso);
   if (!isValid(d)) return null;
   return format(d, "HH:mm · dd/MM/yyyy");
+}
+
+/** Ô nhập số tiền đã thu khi trạng thái "thu một phần" (trang Phòng). */
+function RoomPartialPaidInput({
+  amount,
+  onCommit,
+}: {
+  amount: number | null | undefined;
+  onCommit: (n: number | null) => void;
+}) {
+  const id = useId();
+  const [v, setV] = useState("");
+  useEffect(() => {
+    setV(amount != null && amount >= 0 ? String(amount) : "");
+  }, [amount]);
+  return (
+    <div className="grid gap-1.5 text-xs sm:col-span-2">
+      <Label htmlFor={id}>Đã thu (đ)</Label>
+      <Input
+        id={id}
+        inputMode="numeric"
+        className="tabular-nums"
+        placeholder="VD: 500000"
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onBlur={() => {
+          const raw = v.replaceAll(/[^\d]/g, "");
+          const n = raw ? Number(raw) : null;
+          onCommit(n != null && Number.isFinite(n) && n >= 0 ? n : null);
+        }}
+      />
+    </div>
+  );
 }
 
 function RoomEditDialog({
@@ -587,6 +621,7 @@ export function RoomsPage() {
     patch: {
       cleaned?: boolean;
       paymentStatus?: "unpaid" | "paid" | "partial";
+      paymentPartialAmount?: number | null;
       checkedOut?: boolean;
       checkedInAt?: string | null;
       checkedOutAt?: string | null;
@@ -598,6 +633,19 @@ export function RoomsPage() {
     const note = meta?.note?.trim() || null;
     const paymentStatus =
       patch.paymentStatus ?? meta?.payment_status ?? "unpaid";
+    const prevPartial =
+      meta?.payment_partial_amount != null
+        ? Number(meta.payment_partial_amount)
+        : null;
+    let paymentPartialAmount: number | null = null;
+    if (paymentStatus === "partial") {
+      if (patch.paymentPartialAmount !== undefined) {
+        paymentPartialAmount = patch.paymentPartialAmount;
+      } else {
+        paymentPartialAmount =
+          prevPartial != null && Number.isFinite(prevPartial) ? prevPartial : null;
+      }
+    }
     const cleaned = patch.cleaned ?? meta?.cleaned ?? false;
     const checkedOut = patch.checkedOut ?? meta?.checked_out ?? false;
     const checkedInAt =
@@ -629,6 +677,7 @@ export function RoomsPage() {
         guestName,
         guestPhone,
         paymentStatus,
+        paymentPartialAmount,
         note,
         cleaned,
         checkedOut,
@@ -646,7 +695,10 @@ export function RoomsPage() {
     room: Room,
     paymentStatus: "unpaid" | "paid" | "partial",
   ) {
-    await persistMetaForRoom(room, { paymentStatus });
+    await persistMetaForRoom(room, {
+      paymentStatus,
+      paymentPartialAmount: paymentStatus === "partial" ? undefined : null,
+    });
   }
 
   async function onCheckIn(room: Room) {
@@ -669,6 +721,7 @@ export function RoomsPage() {
           guestName: input.guestName.trim() || null,
           guestPhone: input.guestPhone?.trim() || null,
           paymentStatus: input.paymentStatus,
+          paymentPartialAmount: null,
           note: input.note?.trim() || null,
           cleaned: false,
           checkedOut: false,
@@ -1132,7 +1185,7 @@ export function RoomsPage() {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-xs",
+                            "text-xs max-w-full whitespace-normal",
                             paymentValue === "paid"
                               ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
                               : paymentValue === "partial"
@@ -1145,7 +1198,10 @@ export function RoomsPage() {
                           {paymentValue === "paid"
                             ? "Đã thu"
                             : paymentValue === "partial"
-                              ? "Thu một phần"
+                              ? meta?.payment_partial_amount != null &&
+                                  Number(meta.payment_partial_amount) > 0
+                                ? `Thu một phần · ${Number(meta.payment_partial_amount).toLocaleString("vi-VN")} đ`
+                                : "Thu một phần"
                               : meta
                                 ? "Chưa thu"
                                 : "—"}
@@ -1204,7 +1260,7 @@ export function RoomsPage() {
                     </p>
                   ) : null}
 
-                  <div className="grid gap-2 sm:grid-cols-2 sm:items-end border-t pt-2">
+                  <div className="grid gap-2 sm:grid-cols-2 sm:items-start border-t pt-2">
                     <div className="flex flex-col gap-2 text-xs">
                       <div className="flex flex-wrap gap-2">
                         {showCheckIn ? (
@@ -1248,7 +1304,7 @@ export function RoomsPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-1.5 text-xs">
+                    <div className="grid gap-1.5 text-xs min-w-0">
                       <Label>Thu tiền</Label>
                       <Select
                         value={paymentValue}
@@ -1278,6 +1334,16 @@ export function RoomsPage() {
                           <SelectItem value="paid">Đã thu</SelectItem>
                         </SelectContent>
                       </Select>
+                      {paymentValue === "partial" ? (
+                        <RoomPartialPaidInput
+                          amount={meta?.payment_partial_amount}
+                          onCommit={(n) =>
+                            void persistMetaForRoom(r, {
+                              paymentPartialAmount: n,
+                            })
+                          }
+                        />
+                      ) : null}
                     </div>
                   </div>
 

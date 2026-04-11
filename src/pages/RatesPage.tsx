@@ -1,5 +1,6 @@
 import { eachDayOfInterval, endOfMonth, format, isValid, parseISO, startOfMonth } from "date-fns"
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -80,6 +81,7 @@ export function RatesPage() {
   const [cellDialogGuestName, setCellDialogGuestName] = useState("")
   const [cellDialogGuestPhone, setCellDialogGuestPhone] = useState("")
   const [cellDialogPaymentStatus, setCellDialogPaymentStatus] = useState<"unpaid" | "paid" | "partial">("unpaid")
+  const [cellDialogPaymentPartial, setCellDialogPaymentPartial] = useState("")
   const [cellDialogNote, setCellDialogNote] = useState("")
   const [cellDialogCleaned, setCellDialogCleaned] = useState(false)
 
@@ -137,6 +139,11 @@ export function RatesPage() {
     setCellDialogGuestName(meta?.guest_name ?? "")
     setCellDialogGuestPhone(meta?.guest_phone ?? "")
     setCellDialogPaymentStatus(meta?.payment_status ?? "unpaid")
+    setCellDialogPaymentPartial(
+      meta?.payment_partial_amount != null && Number(meta.payment_partial_amount) >= 0
+        ? String(meta.payment_partial_amount)
+        : "",
+    )
     setCellDialogNote(meta?.note ?? "")
     setCellDialogCleaned(meta?.cleaned === true)
     setCellDialogOpen(true)
@@ -165,6 +172,22 @@ export function RatesPage() {
     const checkedOut = existingMeta?.checked_out === true
     const checkedInAt = existingMeta?.checked_in_at ?? null
     const checkedOutAt = existingMeta?.checked_out_at ?? null
+    if (cellDialogPaymentStatus === "partial") {
+      const rawP = cellDialogPaymentPartial.replaceAll(",", "").trim()
+      const nP = rawP ? Number(rawP.replaceAll(/[^\d]/g, "")) : NaN
+      if (!rawP || !Number.isFinite(nP) || nP <= 0) {
+        toast.error("Vui lòng nhập số tiền đã thu khi chọn thu một phần.")
+        return
+      }
+    }
+
+    let paymentPartialAmount: number | null = null
+    if (cellDialogPaymentStatus === "partial") {
+      const rawP = cellDialogPaymentPartial.replaceAll(/[^\d]/g, "")
+      const nP = Number(rawP)
+      paymentPartialAmount = Number.isFinite(nP) && nP >= 0 ? nP : null
+    }
+
     const hasMeta = Boolean(
       guestName ||
         guestPhone ||
@@ -183,6 +206,7 @@ export function RatesPage() {
         guestName,
         guestPhone,
         paymentStatus: cellDialogPaymentStatus,
+        paymentPartialAmount,
         note,
         cleaned: cellDialogCleaned,
         checkedOut,
@@ -319,6 +343,11 @@ export function RatesPage() {
     if (!hasMeta) {
       await deleteMeta({ roomId, date })
     } else {
+      const paymentPartialAmount =
+        paymentStatus === "partial" && meta?.payment_partial_amount != null
+          ? Number(meta.payment_partial_amount)
+          : null
+
       await upsertMeta({
         branchId: room.branch_id as UUID,
         roomId,
@@ -326,6 +355,8 @@ export function RatesPage() {
         guestName,
         guestPhone,
         paymentStatus,
+        paymentPartialAmount:
+          paymentStatus === "partial" ? paymentPartialAmount : null,
         note,
         cleaned,
         checkedOut,
@@ -348,6 +379,7 @@ export function RatesPage() {
             setCellDialogGuestName("")
             setCellDialogGuestPhone("")
             setCellDialogPaymentStatus("unpaid")
+            setCellDialogPaymentPartial("")
             setCellDialogNote("")
             setCellDialogCleaned(false)
           }
@@ -410,7 +442,11 @@ export function RatesPage() {
                 <Label>Thanh toán</Label>
                 <Select
                   value={cellDialogPaymentStatus}
-                  onValueChange={(v) => setCellDialogPaymentStatus(v as "unpaid" | "paid" | "partial")}
+                  onValueChange={(v) => {
+                    const next = v as "unpaid" | "paid" | "partial"
+                    setCellDialogPaymentStatus(next)
+                    if (next !== "partial") setCellDialogPaymentPartial("")
+                  }}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue>
@@ -432,6 +468,19 @@ export function RatesPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {cellDialogPaymentStatus === "partial" ? (
+                <div className="grid gap-1.5 text-xs md:col-span-2">
+                  <Label htmlFor="cell-partial-paid">Đã thu (đ) *</Label>
+                  <Input
+                    id="cell-partial-paid"
+                    className="tabular-nums"
+                    inputMode="numeric"
+                    placeholder="VD: 500000"
+                    value={cellDialogPaymentPartial}
+                    onChange={(e) => setCellDialogPaymentPartial(e.target.value)}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="grid gap-1.5 text-xs">

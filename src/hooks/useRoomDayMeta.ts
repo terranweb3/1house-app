@@ -11,6 +11,7 @@ type MetaUpsertInput = {
   guestName: string | null
   guestPhone: string | null
   paymentStatus: "unpaid" | "paid" | "partial"
+  paymentPartialAmount: number | null
   note: string | null
   cleaned: boolean
   checkedOut: boolean
@@ -28,6 +29,7 @@ function buildOptimisticRow(existing: RoomDayMeta | undefined, input: MetaUpsert
     guest_name: input.guestName,
     guest_phone: input.guestPhone,
     payment_status: input.paymentStatus,
+    payment_partial_amount: input.paymentPartialAmount,
     note: input.note,
     cleaned: input.cleaned,
     checked_out: input.checkedOut,
@@ -107,6 +109,7 @@ export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to:
         guest_name: input.guestName,
         guest_phone: input.guestPhone,
         payment_status: input.paymentStatus,
+        payment_partial_amount: input.paymentPartialAmount,
         note: input.note,
         cleaned: input.cleaned,
         checked_out: input.checkedOut,

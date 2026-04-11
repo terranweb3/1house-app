@@ -39,6 +39,8 @@ export type RoomDayMeta = {
   guest_name: string | null
   guest_phone: string | null
   payment_status: PaymentStatus
+  /** VND đã thu khi payment_status = partial */
+  payment_partial_amount: number | null
   note: string | null
   cleaned: boolean
   checked_out: boolean
@@ -53,6 +55,8 @@ export type Booking = {
   guest_name: string
   guest_phone: string | null
   payment_status: PaymentStatus
+  /** VND đã thu khi payment_status = partial */
+  payment_partial_amount: number | null
   note: string | null
   created_at: string
   updated_at: string

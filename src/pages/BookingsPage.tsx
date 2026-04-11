@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useBookings } from "@/hooks/useBookings"
-import { paymentBadge, paymentLabel } from "@/lib/payment"
+import { paymentBadge, paymentLabelWithPartial } from "@/lib/payment"
 import type { BookingWithItems, PaymentStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -145,8 +145,11 @@ export function BookingsPage() {
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium text-sm">{booking.guest_name}</span>
-                        <Badge variant="outline" className={cn("text-xs", paymentBadge(booking.payment_status))}>
-                          {paymentLabel(booking.payment_status)}
+                        <Badge variant="outline" className={cn("text-xs max-w-full whitespace-normal text-left h-auto min-h-5 py-0.5", paymentBadge(booking.payment_status))}>
+                          {paymentLabelWithPartial(
+                            booking.payment_status,
+                            booking.payment_partial_amount,
+                          )}
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
