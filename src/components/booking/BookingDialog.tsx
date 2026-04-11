@@ -430,7 +430,7 @@ export function BookingDialog({
                 return (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-3 border rounded-lg p-3 bg-muted/10 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto] md:items-end md:gap-2"
+                    className="flex min-w-0 flex-col gap-3 overflow-hidden border rounded-lg p-3 bg-muted/10 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto] md:items-end md:gap-2"
                   >
                     <div className="grid gap-1 text-xs min-w-0">
                       <Label>Chi nhánh</Label>
@@ -472,13 +472,13 @@ export function BookingDialog({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 min-w-0 md:contents">
-                      <div className="grid gap-1 text-xs min-w-0">
+                    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 md:contents">
+                      <div className="grid min-w-0 gap-1 text-xs">
                         <Label htmlFor={`bd-from-${item.id}`}>Từ ngày</Label>
                         <Input
                           id={`bd-from-${item.id}`}
                           type="date"
-                          className="max-w-full scheme-light dark:scheme-dark"
+                          className="min-w-0 max-w-full scheme-light dark:scheme-dark"
                           value={item.fromDate}
                           onChange={(e) =>
                             updateItem(item.id, "fromDate", e.target.value)
@@ -487,12 +487,12 @@ export function BookingDialog({
                         />
                       </div>
 
-                      <div className="grid gap-1 text-xs min-w-0">
+                      <div className="grid min-w-0 gap-1 text-xs">
                         <Label htmlFor={`bd-to-${item.id}`}>Đến ngày</Label>
                         <Input
                           id={`bd-to-${item.id}`}
                           type="date"
-                          className="max-w-full scheme-light dark:scheme-dark"
+                          className="min-w-0 max-w-full scheme-light dark:scheme-dark"
                           value={item.toDate}
                           onChange={(e) =>
                             updateItem(item.id, "toDate", e.target.value)

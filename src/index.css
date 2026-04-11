@@ -118,6 +118,25 @@
 }
 
 @layer base {
+  /*
+    iOS Safari: ô date native có phần -webkit-datetime-edit khá rộng, dễ tràn khỏi card/flex
+    nếu không ép min-width: 0 trên input và pseudo-element nội bộ.
+  */
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="datetime-local"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="time"]::-webkit-datetime-edit,
+  input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+    min-width: 0;
+  }
+
   *,
   *::before,
   *::after {
