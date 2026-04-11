@@ -28,7 +28,7 @@ import { SidebarIcon } from "@phosphor-icons/react"
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_MOBILE = "min(85vw, 20rem)"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -484,8 +484,8 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-8 text-xs",
-        sm: "h-7 text-xs",
+        default: "min-h-11 py-2 text-xs md:h-8 md:min-h-8 md:py-0",
+        sm: "min-h-11 py-2 text-xs md:h-7 md:min-h-7 md:py-0",
         lg: "h-12 text-xs group-data-[collapsible=icon]:p-0!",
       },
     },

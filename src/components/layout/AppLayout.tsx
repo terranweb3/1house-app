@@ -23,19 +23,19 @@ export function AppLayout() {
   }, [location.pathname])
 
   return (
-    <SidebarProvider className="h-dvh max-h-dvh overflow-hidden">
+    <SidebarProvider className="box-border flex h-dvh max-h-dvh overflow-hidden pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
       <BookingDialog open={isBookingOpen} onOpenChange={setIsBookingOpen} createBooking={createBooking} />
 
       <AppSidebar />
 
       <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-4">
+        <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b px-3 sm:h-14 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger title="Thu gọn / mở menu" aria-label="Thu gọn hoặc mở menu điều hướng" />
             <div className="min-w-0 truncate text-sm font-medium">{pageTitle}</div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsBookingOpen(true)}>
+            <Button variant="outline" size="default" onClick={() => setIsBookingOpen(true)}>
               Đặt phòng
             </Button>
           </div>

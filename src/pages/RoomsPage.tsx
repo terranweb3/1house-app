@@ -203,7 +203,7 @@ function SummaryFilterBadge({
       onClick={onClick}
       className={cn(
         badgeVariants({ variant: "outline" }),
-        "h-auto min-h-5 cursor-pointer select-none text-[11px] font-medium transition-shadow",
+        "h-auto min-h-5 shrink-0 cursor-pointer select-none text-xs font-medium transition-shadow",
         active && "ring-2 ring-ring ring-offset-2 ring-offset-background",
         className
       )}
@@ -806,6 +806,17 @@ export function RoomsPage() {
                 <span className="font-medium text-foreground tabular-nums">{selectedDate}</span>
                 {selectedDate === todayIso ? " · Hôm nay" : null}
               </p>
+              <div className="flex flex-wrap items-center gap-2 md:hidden">
+                <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-muted-foreground">
+                  Đang xem:{" "}
+                  <span className="ml-1 font-medium text-foreground tabular-nums">{selectedDate}</span>
+                  {selectedDate === todayIso ? (
+                    <span className="ml-1 rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                      Hôm nay
+                    </span>
+                  ) : null}
+                </span>
+              </div>
             </div>
 
             <div className="grid w-full shrink-0 gap-1.5 text-xs md:w-auto md:justify-self-end">
@@ -843,7 +854,7 @@ export function RoomsPage() {
 
       {loadError ? <div className="text-sm text-destructive">{loadError}</div> : null}
 
-      <div className="flex flex-wrap gap-2 text-[11px]">
+      <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden px-1 pb-1 scrollbar-none [-webkit-overflow-scrolling:touch] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
         <SummaryFilterBadge
           active={isSummaryBadgeActive("total")}
           onClick={() => onSummaryBadgeClick("total")}
@@ -958,19 +969,19 @@ export function RoomsPage() {
                         <CardTitle className="text-sm font-semibold tabular-nums">Phòng {r.room_number}</CardTitle>
                         <span className="text-xs text-muted-foreground truncate">{r.room_type}</span>
                         {branchName ? (
-                          <Badge variant="outline" className="text-[10px] shrink-0">
+                          <Badge variant="outline" className="text-xs shrink-0">
                             {branchName}
                           </Badge>
                         ) : null}
                       </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <Badge variant="outline" className={cn("text-[10px] font-medium", primaryBadge.cls)}>
+                        <Badge variant="outline" className={cn("text-xs font-medium", primaryBadge.cls)}>
                           {primaryBadge.label}
                         </Badge>
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-[10px]",
+                            "text-xs",
                             paymentValue === "paid"
                               ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
                               : paymentValue === "partial"
@@ -990,7 +1001,7 @@ export function RoomsPage() {
                         </Badge>
                       </div>
                       {checkInLine || checkOutLine ? (
-                        <div className="mt-1.5 space-y-0.5 text-[10px] text-muted-foreground tabular-nums">
+                        <div className="mt-1.5 space-y-0.5 text-xs text-muted-foreground tabular-nums">
                           {checkInLine ? <div>Check-in lúc {checkInLine}</div> : null}
                           {checkOutLine ? <div>Checkout lúc {checkOutLine}</div> : null}
                         </div>
@@ -1003,7 +1014,7 @@ export function RoomsPage() {
                 </CardHeader>
                 <CardContent className="grid gap-2 pt-0 pb-3">
                   {guestName || guestPhone ? (
-                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                    <div className="flex flex-wrap gap-1.5 text-xs">
                       {guestName ? <Badge variant="outline">{guestName}</Badge> : null}
                       {guestPhone ? (
                         <Badge variant="outline" className="tabular-nums">
@@ -1022,11 +1033,11 @@ export function RoomsPage() {
                   </div>
 
                   {meta?.note ? (
-                    <p className="text-[11px] text-muted-foreground line-clamp-2 border-l-2 border-muted pl-2">{meta.note}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2 border-l-2 border-muted pl-2">{meta.note}</p>
                   ) : null}
 
                   <div className="grid gap-2 sm:grid-cols-2 sm:items-end border-t pt-2">
-                    <div className="flex flex-col gap-2 text-[11px]">
+                    <div className="flex flex-col gap-2 text-xs">
                       <div className="flex flex-wrap gap-2">
                         {showCheckIn ? (
                           <Button
@@ -1064,13 +1075,13 @@ export function RoomsPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-1.5 text-[11px]">
+                    <div className="grid gap-1.5 text-xs">
                       <Label>Thu tiền</Label>
                       <Select
                         value={paymentValue}
                         onValueChange={(v) => void onPaymentChange(r, v as "unpaid" | "paid" | "partial")}
                       >
-                        <SelectTrigger className="w-full h-9">
+                        <SelectTrigger className="w-full md:h-9">
                           <SelectValue>
                             {(v) =>
                               v === "unpaid"
@@ -1094,9 +1105,9 @@ export function RoomsPage() {
 
                   <CardFooter className="px-0 pb-0 pt-0 border-0">
                     {selectedDate === todayIso ? (
-                      <div className="text-[10px] text-muted-foreground">Hôm nay · {selectedDate}</div>
+                      <div className="text-xs text-muted-foreground">Hôm nay · {selectedDate}</div>
                     ) : (
-                      <div className="text-[10px] text-muted-foreground tabular-nums">{selectedDate}</div>
+                      <div className="text-xs text-muted-foreground tabular-nums">{selectedDate}</div>
                     )}
                   </CardFooter>
                 </CardContent>
@@ -1105,7 +1116,7 @@ export function RoomsPage() {
           })}
       </div>
 
-      <div className="text-[11px] text-muted-foreground border-t pt-1.5 leading-snug">
+      <div className="text-xs text-muted-foreground border-t pt-1.5 leading-snug">
         <strong className="text-foreground">Check-in</strong> ghi nhận giờ nhận phòng. <strong className="text-foreground">Checkout</strong>{" "}
         ghi giờ trả phòng và chuyển sang cần dọn (tick &quot;Đã dọn phòng&quot; khi xong). Doanh thu / đặt phòng có thể có
         trước khi check-in. Thu tiền theo ngày đang xem.{" "}

@@ -508,7 +508,7 @@ export function RatesPage() {
           if (!next) setSelectedDayIso("")
         }}
       >
-        <DialogContent className="max-w-[min(720px,calc(100vw-24px))] sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[min(720px,calc(100vw-24px))] sm:max-w-[720px] max-h-[min(85vh,100dvh)] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chi tiết ngày</DialogTitle>
             <DialogDescription className="tabular-nums">
@@ -548,7 +548,7 @@ export function RatesPage() {
             ) : null}
           </DialogHeader>
 
-          <ScrollArea className="h-[min(65vh,520px)] border bg-background rounded-md">
+          <ScrollArea className="h-[min(70vh,520px)] border bg-background rounded-md">
             <div className="divide-y pr-3">
               {flatRooms.length === 0 ? (
                 <div className="p-3 text-sm text-muted-foreground">Chưa có phòng.</div>
@@ -729,8 +729,14 @@ export function RatesPage() {
 
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="rates-month">Tháng</Label>
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-              <Input id="rates-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+            <div className="grid min-w-0 grid-cols-[1fr_auto_auto] gap-2">
+              <Input
+                id="rates-month"
+                className="min-w-0"
+                type="month"
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              />
               <Button
                 variant="outline"
                 size="sm"

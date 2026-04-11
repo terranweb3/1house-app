@@ -53,7 +53,16 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-none bg-popover p-4 text-xs/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed z-50 box-border grid w-full gap-4 bg-popover p-4 text-xs/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none",
+          /* Mobile: bottom sheet */
+          "inset-x-0 bottom-0 top-auto max-h-[min(90vh,100dvh)] max-w-none translate-x-0 translate-y-0 rounded-t-xl border-t border-border/30 pb-[max(1rem,env(safe-area-inset-bottom,0px))]",
+          "data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4",
+          "data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4",
+          /* sm+: centered modal */
+          "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-h-[90vh] sm:max-w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-none sm:border-t-0 sm:pb-4",
+          "sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0",
+          "sm:data-closed:zoom-out-95",
+          "sm:max-w-sm",
           className
         )}
         {...props}
@@ -65,8 +74,8 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-2 right-2"
-                size="icon-sm"
+                className="absolute top-2 right-2 max-sm:top-[max(0.5rem,env(safe-area-inset-top,0px))] sm:top-2"
+                size="icon"
               />
             }
           >

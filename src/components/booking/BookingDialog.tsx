@@ -270,7 +270,7 @@ export function BookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal="trap-focus">
-      <DialogContent className="w-full min-w-0 max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto sm:max-w-[min(960px,calc(100vw-2rem))]">
+      <DialogContent className="w-full min-w-0 max-h-[min(90vh,100dvh)] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto sm:max-h-[90vh] sm:max-w-[min(960px,calc(100vw-2rem))]">
         <DialogHeader>
           <DialogTitle>{editBooking ? "Sửa đặt phòng" : "Tạo đặt phòng mới"}</DialogTitle>
           <DialogDescription>
@@ -437,14 +437,14 @@ export function BookingDialog({
                       />
                     </div>
 
-                    <div className="flex justify-center pb-0.5">
+                    <div className="flex justify-center pb-0.5 max-md:pt-1">
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         onClick={() => removeItem(item.id)}
                         disabled={readOnly || items.length === 1}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive max-md:size-12 max-md:min-h-12 max-md:min-w-12"
                       >
                         ✕
                       </Button>

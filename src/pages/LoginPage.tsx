@@ -34,7 +34,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh w-full grid place-items-center p-4">
+    <div className="min-h-dvh w-full grid place-items-center p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>1House</CardTitle>
@@ -72,7 +72,7 @@ export function LoginPage() {
               </Alert>
             ) : null}
 
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+            <Button type="submit" className="w-full min-h-11" disabled={!canSubmit || isSubmitting}>
               {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </form>

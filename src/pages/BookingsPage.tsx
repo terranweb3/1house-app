@@ -145,7 +145,7 @@ export function BookingsPage() {
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-medium text-sm">{booking.guest_name}</span>
-                        <Badge variant="outline" className={cn("text-[10px]", paymentBadge(booking.payment_status))}>
+                        <Badge variant="outline" className={cn("text-xs", paymentBadge(booking.payment_status))}>
                           {paymentLabel(booking.payment_status)}
                         </Badge>
                       </div>
@@ -170,7 +170,7 @@ export function BookingsPage() {
                         </span>
                       </div>
                       {booking.note ? (
-                        <p className="text-[11px] text-muted-foreground border-l-2 border-muted pl-2 line-clamp-2">
+                        <p className="text-xs text-muted-foreground border-l-2 border-muted pl-2 line-clamp-2">
                           {booking.note}
                         </p>
                       ) : null}

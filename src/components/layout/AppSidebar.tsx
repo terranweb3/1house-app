@@ -43,7 +43,7 @@ export function AppSidebar() {
             <Button
               type="button"
               variant="ghost"
-              size="icon-sm"
+              size="icon"
               onClick={() => setOpenMobile(false)}
               aria-label="Đóng menu"
             >

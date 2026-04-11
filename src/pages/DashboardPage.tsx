@@ -96,9 +96,9 @@ function DailyBarChart({
         ) : (
           <div className="max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch]">
             <div
-              className="min-w-[520px] sm:min-w-[720px] grid gap-0.5 sm:gap-1"
+              className="min-w-[280px] sm:min-w-[520px] md:min-w-[720px] grid gap-0.5 sm:gap-1"
               style={{
-                gridTemplateColumns: `repeat(${points.length}, minmax(12px, 1fr))`,
+                gridTemplateColumns: `repeat(${points.length}, minmax(8px, 1fr))`,
               }}
             >
               {points.map((p) => {
@@ -145,7 +145,7 @@ function DailyBarChart({
                         </div>
                       )}
                     </div>
-                    <div className="text-[10px] text-muted-foreground text-center tabular-nums">{p.day}</div>
+                    <div className="text-[11px] sm:text-xs text-muted-foreground text-center tabular-nums">{p.day}</div>
                   </div>
                 )
               })}
@@ -247,7 +247,7 @@ export function DashboardPage() {
         <Card size="sm" className="border-emerald-500/25 bg-emerald-500/3 dark:bg-emerald-500/5">
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Đã thu</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums text-emerald-800 dark:text-emerald-300">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-emerald-800 dark:text-emerald-300">
               {isLoading ? "…" : formatVnd(stats.revenuePaid)}
             </CardTitle>
           </CardHeader>
@@ -270,7 +270,7 @@ export function DashboardPage() {
         <Card size="sm" className="border-amber-500/25 bg-amber-500/3 dark:bg-amber-500/5">
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Thu một phần</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums text-amber-900 dark:text-amber-200">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-amber-900 dark:text-amber-200">
               {isLoading ? "…" : formatVnd(stats.revenuePartial)}
             </CardTitle>
           </CardHeader>
@@ -293,7 +293,7 @@ export function DashboardPage() {
         <Card size="sm" className="border-destructive/20 bg-destructive/3 dark:bg-destructive/10">
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Chưa thu</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums text-destructive">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-destructive">
               {isLoading ? "…" : formatVnd(stats.revenueUnpaid)}
             </CardTitle>
           </CardHeader>
@@ -318,7 +318,7 @@ export function DashboardPage() {
         <Card size="sm">
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Tổng ghi nhận (tháng)</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
               {isLoading ? "…" : formatVnd(stats.totalThisMonth)}
             </CardTitle>
           </CardHeader>
@@ -339,7 +339,7 @@ export function DashboardPage() {
         <Card size="sm">
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Trung bình ghi nhận / ngày</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
               {isLoading ? "…" : formatVnd(Math.round(stats.avgPerDay))}
             </CardTitle>
           </CardHeader>
@@ -350,7 +350,7 @@ export function DashboardPage() {
           <CardHeader className="pb-1.5 pt-3">
             <CardDescription>Phòng có doanh thu</CardDescription>
             <div className="flex items-baseline gap-2">
-              <CardTitle className="text-2xl font-semibold tabular-nums">{isLoading ? "…" : stats.roomsWithRevenue}</CardTitle>
+              <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">{isLoading ? "…" : stats.roomsWithRevenue}</CardTitle>
               <span className="text-sm text-muted-foreground tabular-nums">/ {isLoading ? "…" : stats.totalRooms}</span>
             </div>
           </CardHeader>
@@ -364,7 +364,7 @@ export function DashboardPage() {
             <CardDescription>
               {stats.compareMonthLabel ? `Tổng ghi nhận (${stats.compareMonthLabel})` : "Tổng ghi nhận (tháng so sánh)"}
             </CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums">
+            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
               {isLoading ? "…" : stats.compareMonth ? formatVnd(stats.totalCompareMonth) : "—"}
             </CardTitle>
           </CardHeader>
