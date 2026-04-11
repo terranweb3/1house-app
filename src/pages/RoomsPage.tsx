@@ -284,19 +284,16 @@ export function RoomsPage() {
 
   const {
     rates: dayRates,
-    isLoading: dayRatesLoading,
     error: dayRatesError,
     refresh: refreshDayRates,
   } = useRates({ branchId, from: selectedDate, to: selectedDate })
   const {
     rates: monthRates,
-    isLoading: monthRatesLoading,
     error: monthRatesError,
     refresh: refreshMonthRates,
   } = useRates({ branchId, from: monthRange.from, to: monthRange.to })
   const {
     metas,
-    isLoading: metaLoading,
     error: metaError,
     upsertMeta,
     deleteMeta,
@@ -316,7 +313,8 @@ export function RoomsPage() {
     void loadBookedRoomIds()
   }, [loadBookedRoomIds])
 
-  const isLoading = branchesLoading || roomsLoading || dayRatesLoading || monthRatesLoading || metaLoading
+  /** Chỉ chặn lưới phòng khi chưa có phòng/chi nhánh — doanh thu/meta tải nền, không gộp vào đây (tránh lưới biến mất trên mobile). */
+  const blockingLoad = branchesLoading || roomsLoading
   const loadError = roomsError || dayRatesError || monthRatesError || metaError
 
   const branchNameById = useMemo(() => {
@@ -892,16 +890,16 @@ export function RoomsPage() {
         </SummaryFilterBadge>
       </div>
 
-      {isLoading ? <div className="text-sm text-muted-foreground">Đang tải...</div> : null}
+      {blockingLoad ? <div className="text-sm text-muted-foreground">Đang tải...</div> : null}
 
-      {!isLoading && filteredRooms.length === 0 ? (
+      {!blockingLoad && filteredRooms.length === 0 ? (
         <Card size="sm">
           <CardContent className="py-3 text-sm text-muted-foreground">Không có phòng phù hợp bộ lọc.</CardContent>
         </Card>
       ) : null}
 
       <div className="grid gap-2 sm:grid-cols-2 sm:gap-2.5 xl:grid-cols-3">
-        {!isLoading &&
+        {!blockingLoad &&
           filteredRooms.map((r) => {
             const price = rateByRoomDate.get(`${r.id}:${selectedDate}`)
             const meta = metaByRoomDate.get(`${r.id}:${selectedDate}`)

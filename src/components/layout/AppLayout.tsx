@@ -23,12 +23,12 @@ export function AppLayout() {
   }, [location.pathname])
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-dvh max-h-dvh overflow-hidden">
       <BookingDialog open={isBookingOpen} onOpenChange={setIsBookingOpen} createBooking={createBooking} />
 
       <AppSidebar />
 
-      <SidebarInset className="min-h-svh min-w-0 overflow-x-hidden">
+      <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <SidebarTrigger title="Thu gọn / mở menu" aria-label="Thu gọn hoặc mở menu điều hướng" />
@@ -40,7 +40,8 @@ export function AppLayout() {
             </Button>
           </div>
         </header>
-        <div className="min-w-0 flex-1 overflow-x-hidden p-2 sm:p-3">
+        {/* Cuộn trong khối này thay vì body — tránh nhảy lên đầu trang khi focus/Select trên mobile */}
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-2 sm:p-3 [-webkit-overflow-scrolling:touch]">
           <Outlet />
         </div>
       </SidebarInset>
