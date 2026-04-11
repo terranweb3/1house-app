@@ -10,6 +10,9 @@ export type MetaUpsertRow = {
   paymentStatus: PaymentStatus
   note: string | null
   cleaned: boolean
+  checkedOut: boolean
+  checkedInAt: string | null
+  checkedOutAt: string | null
 }
 
 export async function upsertMetasBatch(rows: MetaUpsertRow[]) {
@@ -23,6 +26,9 @@ export async function upsertMetasBatch(rows: MetaUpsertRow[]) {
     payment_status: r.paymentStatus,
     note: r.note,
     cleaned: r.cleaned,
+    checked_out: r.checkedOut,
+    checked_in_at: r.checkedInAt,
+    checked_out_at: r.checkedOutAt,
   }))
   const chunkSize = 500
   for (let i = 0; i < payload.length; i += chunkSize) {

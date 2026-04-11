@@ -1,4 +1,4 @@
-import { Door, GearSix, House, Moon, Sun, Tag, X } from "@phosphor-icons/react"
+import { CalendarCheck, Door, GearSix, House, Moon, Sun, Tag, X } from "@phosphor-icons/react"
 import { matchPath, NavLink, useLocation } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ const navItems = [
   { to: "/", label: "Tổng quan", icon: House },
   { to: "/rooms", label: "Phòng", icon: Door },
   { to: "/revenue", label: "Doanh thu", icon: Tag },
+  { to: "/bookings", label: "Đặt phòng", icon: CalendarCheck },
   { to: "/settings", label: "Cài đặt", icon: GearSix },
 ] as const
 

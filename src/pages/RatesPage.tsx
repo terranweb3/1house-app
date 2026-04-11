@@ -1,4 +1,4 @@
-import { eachDayOfInterval, endOfMonth, format, parseISO, startOfMonth } from "date-fns"
+import { eachDayOfInterval, endOfMonth, format, isValid, parseISO, startOfMonth } from "date-fns"
 import { useMemo, useState } from "react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -59,6 +59,13 @@ function plusMonth(month: string, delta: number) {
   const [yStr, mStr] = month.split("-")
   const d = new Date(Number(yStr), Number(mStr) - 1 + delta, 1)
   return ym(d)
+}
+
+function formatMetaDateTime(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = parseISO(iso)
+  if (!isValid(d)) return null
+  return format(d, "HH:mm · dd/MM/yyyy")
 }
 
 export function RatesPage() {
@@ -150,12 +157,23 @@ export function RatesPage() {
       await upsertRate({ branchId: room.branch_id as UUID, roomId: cellDialogRoomId, date: cellDialogDate, price: next })
     }
 
-    // Save guest meta (only if any field is set, else delete)
+    // Save guest meta (only if any field is set, else delete). Check-in/out timestamps chỉnh trên trang Phòng.
     const guestName = cellDialogGuestName.trim() || null
     const guestPhone = cellDialogGuestPhone.trim() || null
     const note = cellDialogNote.trim() || null
+    const existingMeta = metaByRoomDate.get(`${cellDialogRoomId}:${cellDialogDate}`)
+    const checkedOut = existingMeta?.checked_out === true
+    const checkedInAt = existingMeta?.checked_in_at ?? null
+    const checkedOutAt = existingMeta?.checked_out_at ?? null
     const hasMeta = Boolean(
-      guestName || guestPhone || note || cellDialogPaymentStatus !== "unpaid" || cellDialogCleaned
+      guestName ||
+        guestPhone ||
+        note ||
+        cellDialogPaymentStatus !== "unpaid" ||
+        cellDialogCleaned ||
+        checkedOut ||
+        checkedInAt != null ||
+        checkedOutAt != null
     )
     if (hasMeta) {
       await upsertMeta({
@@ -167,6 +185,9 @@ export function RatesPage() {
         paymentStatus: cellDialogPaymentStatus,
         note,
         cleaned: cellDialogCleaned,
+        checkedOut,
+        checkedInAt,
+        checkedOutAt,
       })
     } else {
       await deleteMeta({ roomId: cellDialogRoomId, date: cellDialogDate })
@@ -253,11 +274,15 @@ export function RatesPage() {
     if (!selectedDayIso || flatRooms.length === 0) return null
     let booked = 0
     let cleaned = 0
+    let checkedIn = 0
+    let checkedOut = 0
     for (const r of flatRooms) {
       const v = rateByRoomDate.get(`${r.id}:${selectedDayIso}`)
       const meta = metaByRoomDate.get(`${r.id}:${selectedDayIso}`)
       if (typeof v === "number" && v > 0) booked += 1
       if (meta?.cleaned === true) cleaned += 1
+      if (meta?.checked_in_at) checkedIn += 1
+      if (meta?.checked_out === true) checkedOut += 1
     }
     const n = flatRooms.length
     return {
@@ -265,6 +290,8 @@ export function RatesPage() {
       notBooked: n - booked,
       cleaned,
       notCleaned: n - cleaned,
+      checkedIn,
+      checkedOut,
     }
   }, [selectedDayIso, flatRooms, rateByRoomDate, metaByRoomDate])
 
@@ -276,7 +303,19 @@ export function RatesPage() {
     const guestPhone = meta?.guest_phone?.trim() || null
     const note = meta?.note?.trim() || null
     const paymentStatus = meta?.payment_status ?? "unpaid"
-    const hasMeta = Boolean(guestName || guestPhone || note || paymentStatus !== "unpaid" || cleaned)
+    const checkedOut = meta?.checked_out === true
+    const checkedInAt = meta?.checked_in_at ?? null
+    const checkedOutAt = meta?.checked_out_at ?? null
+    const hasMeta = Boolean(
+      guestName ||
+        guestPhone ||
+        note ||
+        paymentStatus !== "unpaid" ||
+        cleaned ||
+        checkedOut ||
+        checkedInAt != null ||
+        checkedOutAt != null
+    )
     if (!hasMeta) {
       await deleteMeta({ roomId, date })
     } else {
@@ -289,6 +328,9 @@ export function RatesPage() {
         paymentStatus,
         note,
         cleaned,
+        checkedOut,
+        checkedInAt,
+        checkedOutAt,
       })
     }
   }
@@ -413,6 +455,34 @@ export function RatesPage() {
                 Đã dọn phòng
               </Label>
             </div>
+
+            {cellDialogRoomId && cellDialogDate ? (
+              <div className="rounded-md border border-dashed border-border/80 bg-muted/20 px-2.5 py-2 text-[11px] text-muted-foreground leading-snug">
+                <div className="font-medium text-foreground">Check-in / Checkout</div>
+                <p className="mt-1">
+                  Ghi nhận giờ check-in và checkout trên trang <span className="font-medium text-foreground">Phòng</span>{" "}
+                  (ngày đang chọn). Dữ liệu hiện tại:
+                </p>
+                {(() => {
+                  const m = metaByRoomDate.get(`${cellDialogRoomId}:${cellDialogDate}`)
+                  const inStr = formatMetaDateTime(m?.checked_in_at)
+                  const outStr = formatMetaDateTime(m?.checked_out_at)
+                  if (!inStr && !outStr && !m?.checked_out) {
+                    return <p className="mt-1 italic">Chưa có.</p>
+                  }
+                  return (
+                    <ul className="mt-1 list-inside list-disc tabular-nums">
+                      {inStr ? <li>Check-in: {inStr}</li> : <li>Chưa ghi check-in</li>}
+                      {m?.checked_out ? (
+                        <li>Đã checkout{outStr ? `: ${outStr}` : ""}</li>
+                      ) : (
+                        <li>Chưa checkout</li>
+                      )}
+                    </ul>
+                  )
+                })()}
+              </div>
+            ) : null}
           </div>
 
           <DialogFooter>
@@ -468,6 +538,12 @@ export function RatesPage() {
                 <Badge variant="outline" className="border-amber-500/35 bg-amber-500/10 text-amber-900 dark:text-amber-200">
                   Chưa dọn: <strong className="tabular-nums">{selectedDaySummary.notCleaned}</strong>
                 </Badge>
+                <Badge variant="outline" className="border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                  Đã check-in: <strong className="tabular-nums">{selectedDaySummary.checkedIn}</strong>
+                </Badge>
+                <Badge variant="outline" className="border-violet-500/35 bg-violet-500/10 text-violet-900 dark:text-violet-200">
+                  Đã checkout: <strong className="tabular-nums">{selectedDaySummary.checkedOut}</strong>
+                </Badge>
               </div>
             ) : null}
           </DialogHeader>
@@ -485,6 +561,8 @@ export function RatesPage() {
                   const branchName = branchId === "all" ? (branchNameById.get(r.branch_id) ?? "") : ""
                   const isBooked = typeof v === "number" && v > 0
                   const isCleaned = meta?.cleaned === true
+                  const checkInStr = formatMetaDateTime(meta?.checked_in_at)
+                  const checkOutStr = formatMetaDateTime(meta?.checked_out_at)
                   const paymentLabel =
                     meta?.payment_status === "paid" ? "Đã thu" : meta?.payment_status === "partial" ? "Thu 1 phần" : meta ? "Chưa thu" : ""
                   const paymentCls =
@@ -555,6 +633,16 @@ export function RatesPage() {
                         {meta?.note ? (
                           <p className="text-[11px] text-muted-foreground line-clamp-2 border-l-2 border-muted pl-2">{meta.note}</p>
                         ) : null}
+                        {checkInStr || checkOutStr || meta?.checked_out ? (
+                          <div className="text-[10px] text-muted-foreground tabular-nums space-y-0.5 border-l-2 border-primary/30 pl-2">
+                            {checkInStr ? <div>Check-in: {checkInStr}</div> : null}
+                            {meta?.checked_out ? (
+                              <div>Checkout: {checkOutStr ?? "—"}</div>
+                            ) : (
+                              <div>Chưa checkout</div>
+                            )}
+                          </div>
+                        ) : null}
                         <div className="inline-flex items-center gap-2 text-[11px]">
                           <Checkbox
                             id={`day-cleaned-${r.id}`}
@@ -595,7 +683,8 @@ export function RatesPage() {
           </ScrollArea>
 
           <p className="text-xs text-muted-foreground">
-            Đặt = đã nhập doanh thu ngày đó. Dọn = trạng thái dọn phòng. Bấm ô tiền để sửa đầy đủ (khách, thanh toán, ghi chú).
+            Đặt = đã nhập doanh thu ngày đó. Dọn = trạng thái dọn phòng. Giờ check-in/checkout xem và cập nhật tại trang{" "}
+            <span className="font-medium text-foreground">Phòng</span>. Bấm ô tiền để sửa doanh thu, khách, thanh toán, ghi chú.
           </p>
         </DialogContent>
       </Dialog>

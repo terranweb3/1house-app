@@ -41,6 +41,34 @@ export type RoomDayMeta = {
   payment_status: PaymentStatus
   note: string | null
   cleaned: boolean
+  checked_out: boolean
+  checked_in_at: string | null
+  checked_out_at: string | null
   created_at: string
   updated_at: string
+}
+
+export type Booking = {
+  id: UUID
+  guest_name: string
+  guest_phone: string | null
+  payment_status: PaymentStatus
+  note: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type BookingItem = {
+  id: UUID
+  booking_id: UUID
+  branch_id: UUID
+  room_id: UUID
+  date: string
+  price: number
+  created_at: string
+}
+
+export type BookingWithItems = Booking & {
+  items: BookingItem[]
+  branch_names?: string[]
 }

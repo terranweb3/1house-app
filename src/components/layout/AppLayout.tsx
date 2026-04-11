@@ -2,28 +2,29 @@ import { useMemo, useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 
 import { AppSidebar } from "@/components/layout/AppSidebar"
-import { QuickAddDialog } from "@/components/revenue/QuickAddDialog"
-import { QuickAddFab } from "@/components/revenue/QuickAddFab"
+import { BookingDialog } from "@/components/booking/BookingDialog"
 import { Button } from "@/components/ui/button"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { useBookings } from "@/hooks/useBookings"
 
 export function AppLayout() {
   const location = useLocation()
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
+  const [isBookingOpen, setIsBookingOpen] = useState(false)
+  const { createBooking } = useBookings()
 
   const pageTitle = useMemo(() => {
     const p = location.pathname
     if (p === "/") return "Tổng quan"
     if (p.startsWith("/rooms")) return "Phòng"
     if (p.startsWith("/revenue")) return "Doanh thu"
+    if (p.startsWith("/bookings")) return "Đặt phòng"
     if (p.startsWith("/settings")) return "Cài đặt"
     return "1House"
   }, [location.pathname])
 
   return (
     <SidebarProvider>
-      <QuickAddDialog open={isQuickAddOpen} onOpenChange={setIsQuickAddOpen} />
-      <QuickAddFab onClick={() => setIsQuickAddOpen(true)} />
+      <BookingDialog open={isBookingOpen} onOpenChange={setIsBookingOpen} createBooking={createBooking} />
 
       <AppSidebar />
 
@@ -34,8 +35,8 @@ export function AppLayout() {
             <div className="min-w-0 truncate text-sm font-medium">{pageTitle}</div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsQuickAddOpen(true)}>
-              Nhập nhanh
+            <Button variant="outline" size="sm" onClick={() => setIsBookingOpen(true)}>
+              Đặt phòng
             </Button>
           </div>
         </header>
@@ -46,4 +47,3 @@ export function AppLayout() {
     </SidebarProvider>
   )
 }
-

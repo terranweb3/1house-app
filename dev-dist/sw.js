@@ -67,13 +67,10 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-785e9e58'], (function (workbox) { 'use strict';
+define(['./workbox-5119daf5'], (function (workbox) { 'use strict';
 
-  self.addEventListener('message', event => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-      self.skipWaiting();
-    }
-  });
+  self.skipWaiting();
+  workbox.clientsClaim();
 
   /**
    * The precacheAndRoute() method efficiently caches and responds to
@@ -82,7 +79,7 @@ define(['./workbox-785e9e58'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "/index.html",
-    "revision": "0.ud8qjq70g4k"
+    "revision": "0.367i9853vb8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {

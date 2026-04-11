@@ -10,8 +10,9 @@ export function useRooms(branchId?: UUID | "all") {
 
   const normalizedBranchId = useMemo(() => branchId ?? "all", [branchId])
 
-  const refresh = useCallback(async () => {
-    setIsLoading(true)
+  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent === true
+    if (!silent) setIsLoading(true)
     setError(null)
     try {
       let q = supabase.from("rooms").select("*").order("room_number", { ascending: true })
@@ -23,7 +24,7 @@ export function useRooms(branchId?: UUID | "all") {
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Tải danh sách phòng thất bại")
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }, [normalizedBranchId])
 
@@ -37,7 +38,7 @@ export function useRooms(branchId?: UUID | "all") {
     ) => {
       const { error } = await supabase.from("rooms").insert(input)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -59,7 +60,7 @@ export function useRooms(branchId?: UUID | "all") {
         if (error) throw error
       }
 
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -71,7 +72,7 @@ export function useRooms(branchId?: UUID | "all") {
       const { id, ...patch } = input
       const { error } = await supabase.from("rooms").update(patch).eq("id", id)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -80,7 +81,7 @@ export function useRooms(branchId?: UUID | "all") {
     async (id: UUID) => {
       const { error } = await supabase.from("rooms").delete().eq("id", id)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -89,7 +90,7 @@ export function useRooms(branchId?: UUID | "all") {
     async (args: { id: UUID; status: RoomStatus }) => {
       const { error } = await supabase.from("rooms").update({ status: args.status }).eq("id", args.id)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )

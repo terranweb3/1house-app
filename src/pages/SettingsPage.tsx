@@ -254,7 +254,13 @@ function BulkRoomsDialog({
             <Label>Chi nhánh</Label>
             <Select value={branchId || ""} onValueChange={(v) => setBranchId(v as UUID)}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn chi nhánh" />
+                <SelectValue placeholder="Chọn chi nhánh">
+                  {(value) =>
+                    value != null && value !== ""
+                      ? branches.find((b) => b.id === value)?.name ?? String(value)
+                      : null
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
@@ -270,7 +276,17 @@ function BulkRoomsDialog({
             <Label>Trạng thái</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>
+                  {(v) =>
+                    v === "available"
+                      ? "Trống"
+                      : v === "occupied"
+                        ? "Đang ở"
+                        : v === "maintenance"
+                          ? "Bảo trì"
+                          : String(v ?? "")
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="available">Trống</SelectItem>
@@ -437,7 +453,13 @@ function RoomFormDialog({
               disabled={mode === "edit"}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn chi nhánh" />
+                <SelectValue placeholder="Chọn chi nhánh">
+                  {(value) =>
+                    value != null && value !== ""
+                      ? branches.find((b) => b.id === value)?.name ?? String(value)
+                      : null
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {branches.map((b) => (
@@ -452,7 +474,17 @@ function RoomFormDialog({
             <Label>Trạng thái</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>
+                  {(v) =>
+                    v === "available"
+                      ? "Trống"
+                      : v === "occupied"
+                        ? "Đang ở"
+                        : v === "maintenance"
+                          ? "Bảo trì"
+                          : String(v ?? "")
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="available">Trống</SelectItem>

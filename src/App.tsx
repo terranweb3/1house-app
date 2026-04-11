@@ -7,6 +7,7 @@ import { DashboardPage } from "@/pages/DashboardPage"
 import { RatesPage } from "@/pages/RatesPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { RoomsPage } from "@/pages/RoomsPage"
+import { BookingsPage } from "@/pages/BookingsPage"
 import { useAuth } from "@/hooks/useAuth"
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/revenue" element={<RatesPage />} />
+          <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

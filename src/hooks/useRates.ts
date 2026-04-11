@@ -11,14 +11,15 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
 
   const key = useMemo(() => `${args.branchId}:${args.from}:${args.to}`, [args.branchId, args.from, args.to])
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent === true
     if (!enabled) {
       setRates([])
       setIsLoading(false)
       setError(null)
       return
     }
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
     setError(null)
     try {
       let q = supabase
@@ -36,7 +37,7 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Tải doanh thu thất bại")
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }, [args.branchId, args.from, args.to, enabled])
 
@@ -57,7 +58,7 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
         { onConflict: "room_id,date" }
       )
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -66,7 +67,7 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
     async (input: { roomId: UUID; date: string }) => {
       const { error } = await supabase.from("rates").delete().eq("room_id", input.roomId).eq("date", input.date)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -86,7 +87,7 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
         const { error } = await supabase.from("rates").upsert(chunk, { onConflict: "room_id,date" })
         if (error) throw error
       }
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )

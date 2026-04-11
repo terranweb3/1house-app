@@ -8,8 +8,9 @@ export function useBranches() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    setIsLoading(true)
+  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent === true
+    if (!silent) setIsLoading(true)
     setError(null)
     try {
       const { data, error } = await supabase
@@ -21,7 +22,7 @@ export function useBranches() {
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Tải danh sách chi nhánh thất bại")
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
   }, [])
 
@@ -33,7 +34,7 @@ export function useBranches() {
     async (input: Pick<Branch, "name" | "address">) => {
       const { error } = await supabase.from("branches").insert(input)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -43,7 +44,7 @@ export function useBranches() {
       const { id, ...patch } = input
       const { error } = await supabase.from("branches").update(patch).eq("id", id)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
@@ -52,7 +53,7 @@ export function useBranches() {
     async (id: UUID) => {
       const { error } = await supabase.from("branches").delete().eq("id", id)
       if (error) throw error
-      await refresh()
+      await refresh({ silent: true })
     },
     [refresh]
   )
