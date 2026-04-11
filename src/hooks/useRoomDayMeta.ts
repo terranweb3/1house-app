@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import type { RoomDayMeta, UUID } from "@/lib/types"
 import { supabase } from "@/lib/supabase"
 
-export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to: string }) {
+export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to: string; enabled?: boolean }) {
+  const enabled = args.enabled !== false
   const [metas, setMetas] = useState<RoomDayMeta[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -11,6 +12,12 @@ export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to:
   const key = useMemo(() => `${args.branchId}:${args.from}:${args.to}`, [args.branchId, args.from, args.to])
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setMetas([])
+      setIsLoading(false)
+      setError(null)
+      return
+    }
     setIsLoading(true)
     setError(null)
     try {
@@ -31,12 +38,12 @@ export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to:
     } finally {
       setIsLoading(false)
     }
-  }, [args.branchId, args.from, args.to])
+  }, [args.branchId, args.from, args.to, enabled])
 
   useEffect(() => {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
+  }, [key, enabled])
 
   const upsertMeta = useCallback(
     async (input: {
@@ -47,6 +54,7 @@ export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to:
       guestPhone: string | null
       paymentStatus: "unpaid" | "paid" | "partial"
       note: string | null
+      cleaned: boolean
     }) => {
       const { error } = await supabase.from("room_day_meta").upsert(
         {
@@ -57,6 +65,7 @@ export function useRoomDayMeta(args: { branchId: UUID | "all"; from: string; to:
           guest_phone: input.guestPhone,
           payment_status: input.paymentStatus,
           note: input.note,
+          cleaned: input.cleaned,
         },
         { onConflict: "room_id,date" }
       )

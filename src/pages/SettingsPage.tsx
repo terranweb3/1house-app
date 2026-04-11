@@ -1,7 +1,36 @@
-import { Dialog } from "@base-ui/react/dialog"
 import { useEffect, useMemo, useState } from "react"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { useBranches } from "@/hooks/useBranches"
 import { useRooms } from "@/hooks/useRooms"
 import type { Branch, Room, RoomStatus, UUID } from "@/lib/types"
@@ -89,57 +118,36 @@ function BranchFormDialog({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 border bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-base font-semibold">{mode === "edit" ? "Sửa chi nhánh" : "Thêm chi nhánh"}</div>
-              <div className="text-xs text-muted-foreground">Tên + địa chỉ chi nhánh.</div>
-            </div>
-            <Button variant="outline" size="xs" type="button" onClick={() => onOpenChange(false)}>
-              Đóng
-            </Button>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[min(560px,calc(100vw-24px))] sm:max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle>{mode === "edit" ? "Sửa chi nhánh" : "Thêm chi nhánh"}</DialogTitle>
+          <DialogDescription>Tên + địa chỉ chi nhánh.</DialogDescription>
+        </DialogHeader>
 
-          <div className="mt-4 grid gap-3">
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Tên</div>
-              <input
-                className="h-9 border bg-background px-2 text-sm"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Địa chỉ</div>
-              <input
-                className="h-9 border bg-background px-2 text-sm"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </label>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5 text-xs">
+            <Label htmlFor="branch-name">Tên</Label>
+            <Input id="branch-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-
-          {error ? <div className="mt-3 text-xs text-destructive">{error}</div> : null}
-
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isSaving}
-              onClick={() => onOpenChange(false)}
-            >
-              Hủy
-            </Button>
-            <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
-              {isSaving ? "Đang lưu..." : "Lưu"}
-            </Button>
+          <div className="grid gap-1.5 text-xs">
+            <Label htmlFor="branch-address">Địa chỉ</Label>
+            <Input id="branch-address" value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </div>
+
+        {error ? <div className="text-xs text-destructive">{error}</div> : null}
+
+        <DialogFooter>
+          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+            Hủy
+          </Button>
+          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+            {isSaving ? "Đang lưu..." : "Lưu"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -234,101 +242,94 @@ function BulkRoomsDialog({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[min(720px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 border bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-base font-semibold">Thêm phòng hàng loạt</div>
-              <div className="text-xs text-muted-foreground">Dán danh sách phòng (mỗi dòng 1 phòng, hoặc 101-120).</div>
-            </div>
-            <Button variant="outline" size="xs" type="button" onClick={() => onOpenChange(false)}>
-              Đóng
-            </Button>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[min(720px,calc(100vw-24px))] sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Thêm phòng hàng loạt</DialogTitle>
+          <DialogDescription>Dán danh sách phòng (mỗi dòng 1 phòng, hoặc 101-120).</DialogDescription>
+        </DialogHeader>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Chi nhánh</div>
-              <select
-                className="h-9 border bg-background px-2 text-sm"
-                value={branchId}
-                onChange={(e) => setBranchId(e.target.value as UUID)}
-              >
-                <option value="">Chọn chi nhánh</option>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-1.5 text-xs">
+            <Label>Chi nhánh</Label>
+            <Select value={branchId || ""} onValueChange={(v) => setBranchId(v as UUID)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn chi nhánh" />
+              </SelectTrigger>
+              <SelectContent>
                 {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
+                  <SelectItem key={b.id} value={b.id}>
                     {b.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-            </label>
-
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Trạng thái</div>
-              <select
-                className="h-9 border bg-background px-2 text-sm"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as RoomStatus)}
-              >
-                <option value="available">Trống</option>
-                <option value="occupied">Đang ở</option>
-                <option value="maintenance">Bảo trì</option>
-              </select>
-            </label>
-
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Loại phòng</div>
-              <input className="h-9 border bg-background px-2 text-sm" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
-            </label>
-
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Tuỳ chọn</div>
-              <label className="flex items-center gap-2 text-sm h-9 border bg-background px-2">
-                <input
-                  type="checkbox"
-                  checked={ignoreDuplicates}
-                  onChange={(e) => setIgnoreDuplicates(e.target.checked)}
-                />
-                Bỏ qua phòng trùng
-              </label>
-            </label>
+              </SelectContent>
+            </Select>
           </div>
 
-          <label className="mt-3 grid gap-1 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-muted-foreground">Danh sách số phòng</div>
-              <div className="text-muted-foreground">
-                Sẽ thêm: <span className="font-medium">{parsedRooms.length}</span>
-              </div>
-            </div>
-            <textarea
-              className="min-h-40 border bg-background p-2 text-sm font-mono"
-              value={rawRooms}
-              onChange={(e) => setRawRooms(e.target.value)}
-              placeholder={`Ví dụ:\n101\n102\n103\n\nHoặc:\n201-220`}
+          <div className="grid gap-1.5 text-xs">
+            <Label>Trạng thái</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="available">Trống</SelectItem>
+                <SelectItem value="occupied">Đang ở</SelectItem>
+                <SelectItem value="maintenance">Bảo trì</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-1.5 text-xs">
+            <Label htmlFor="bulk-room-type">Loại phòng</Label>
+            <Input id="bulk-room-type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
+          </div>
+
+          <div className="flex items-center gap-2 text-sm h-9 border px-2">
+            <Checkbox
+              id="bulk-ignore-dup"
+              checked={ignoreDuplicates}
+              onCheckedChange={(c) => setIgnoreDuplicates(c === true)}
             />
-          </label>
-
-          <label className="mt-3 grid gap-1 text-xs">
-            <div className="text-muted-foreground">Ghi chú (áp dụng cho tất cả phòng)</div>
-            <textarea className="min-h-16 border bg-background p-2 text-sm" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </label>
-
-          {error ? <div className="mt-3 text-xs text-destructive whitespace-pre-wrap">{error}</div> : null}
-
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
-              Hủy
-            </Button>
-            <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
-              {isSaving ? "Đang lưu..." : "Thêm phòng"}
-            </Button>
+            <Label htmlFor="bulk-ignore-dup" className="font-normal cursor-pointer">
+              Bỏ qua phòng trùng
+            </Label>
           </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </div>
+
+        <div className="grid gap-1.5 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="bulk-raw">Danh sách số phòng</Label>
+            <span className="text-muted-foreground">
+              Sẽ thêm: <span className="font-medium">{parsedRooms.length}</span>
+            </span>
+          </div>
+          <Textarea
+            id="bulk-raw"
+            className="min-h-40 font-mono"
+            value={rawRooms}
+            onChange={(e) => setRawRooms(e.target.value)}
+            placeholder={`Ví dụ:\n101\n102\n103\n\nHoặc:\n201-220`}
+          />
+        </div>
+
+        <div className="grid gap-1.5 text-xs">
+          <Label htmlFor="bulk-notes">Ghi chú (áp dụng cho tất cả phòng)</Label>
+          <Textarea id="bulk-notes" className="min-h-16" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+
+        {error ? <div className="text-xs text-destructive whitespace-pre-wrap">{error}</div> : null}
+
+        <DialogFooter>
+          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+            Hủy
+          </Button>
+          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+            {isSaving ? "Đang lưu..." : "Thêm phòng"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -420,95 +421,74 @@ function RoomFormDialog({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[min(640px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 border bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-base font-semibold">{mode === "edit" ? "Sửa phòng" : "Thêm phòng"}</div>
-              <div className="text-xs text-muted-foreground">Số phòng, loại phòng, trạng thái.</div>
-            </div>
-            <Button variant="outline" size="xs" type="button" onClick={() => onOpenChange(false)}>
-              Đóng
-            </Button>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[min(640px,calc(100vw-24px))] sm:max-w-[640px]">
+        <DialogHeader>
+          <DialogTitle>{mode === "edit" ? "Sửa phòng" : "Thêm phòng"}</DialogTitle>
+          <DialogDescription>Số phòng, loại phòng, trạng thái.</DialogDescription>
+        </DialogHeader>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Chi nhánh</div>
-              <select
-                className="h-9 border bg-background px-2 text-sm"
-                value={branchId}
-                onChange={(e) => setBranchId(e.target.value as UUID)}
-                disabled={mode === "edit"}
-              >
-                <option value="">Chọn chi nhánh</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Trạng thái</div>
-              <select
-                className="h-9 border bg-background px-2 text-sm"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as RoomStatus)}
-              >
-                <option value="available">Trống</option>
-                <option value="occupied">Đang ở</option>
-                <option value="maintenance">Bảo trì</option>
-              </select>
-            </label>
-
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Số phòng</div>
-              <input
-                className="h-9 border bg-background px-2 text-sm"
-                value={roomNumber}
-                onChange={(e) => setRoomNumber(e.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-xs">
-              <div className="text-muted-foreground">Loại phòng</div>
-              <input
-                className="h-9 border bg-background px-2 text-sm"
-                value={roomType}
-                onChange={(e) => setRoomType(e.target.value)}
-              />
-            </label>
-          </div>
-
-          <label className="mt-3 grid gap-1 text-xs">
-            <div className="text-muted-foreground">Ghi chú</div>
-            <textarea
-              className="min-h-20 border bg-background p-2 text-sm"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </label>
-
-          {error ? <div className="mt-3 text-xs text-destructive">{error}</div> : null}
-
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              disabled={isSaving}
-              onClick={() => onOpenChange(false)}
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-1.5 text-xs">
+            <Label>Chi nhánh</Label>
+            <Select
+              value={branchId || ""}
+              onValueChange={(v) => setBranchId(v as UUID)}
+              disabled={mode === "edit"}
             >
-              Hủy
-            </Button>
-            <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
-              {isSaving ? "Đang lưu..." : "Lưu"}
-            </Button>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn chi nhánh" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+          <div className="grid gap-1.5 text-xs">
+            <Label>Trạng thái</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as RoomStatus)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="available">Trống</SelectItem>
+                <SelectItem value="occupied">Đang ở</SelectItem>
+                <SelectItem value="maintenance">Bảo trì</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-1.5 text-xs">
+            <Label htmlFor="room-form-number">Số phòng</Label>
+            <Input id="room-form-number" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5 text-xs">
+            <Label htmlFor="room-form-type">Loại phòng</Label>
+            <Input id="room-form-type" value={roomType} onChange={(e) => setRoomType(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="grid gap-1.5 text-xs">
+          <Label htmlFor="room-form-notes">Ghi chú</Label>
+          <Textarea id="room-form-notes" className="min-h-20" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+
+        {error ? <div className="text-xs text-destructive">{error}</div> : null}
+
+        <DialogFooter>
+          <Button variant="outline" type="button" disabled={isSaving} onClick={() => onOpenChange(false)}>
+            Hủy
+          </Button>
+          <Button type="button" disabled={isSaving} onClick={() => void onSubmit()}>
+            {isSaving ? "Đang lưu..." : "Lưu"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -536,6 +516,12 @@ export function SettingsPage() {
   } = useRooms(roomsBranchId)
 
   const [tab, setTab] = useState<"branches" | "rooms">("branches")
+
+  const [deleteConfirm, setDeleteConfirm] = useState<
+    | { kind: "branch"; branch: Branch }
+    | { kind: "room"; room: Room }
+    | null
+  >(null)
 
   const [branchDialogOpen, setBranchDialogOpen] = useState(false)
   const [branchDialogMode, setBranchDialogMode] = useState<"create" | "edit">("create")
@@ -578,7 +564,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-2 sm:gap-3">
       <BranchFormDialog
         open={branchDialogOpen}
         onOpenChange={setBranchDialogOpen}
@@ -605,31 +591,21 @@ export function SettingsPage() {
         onCreateBulk={createRoomsBulk}
       />
 
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-lg font-semibold">Cài đặt</div>
-          <div className="text-sm text-muted-foreground">Quản lý chi nhánh và phòng.</div>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "branches" | "rooms")} className="grid gap-2 sm:gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-0.5">
+            <div className="text-base font-semibold leading-tight sm:text-lg">Cài đặt</div>
+            <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
+              Quản lý chi nhánh và phòng.
+            </div>
+          </div>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="branches">Chi nhánh</TabsTrigger>
+            <TabsTrigger value="rooms">Phòng</TabsTrigger>
+          </TabsList>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={tab === "branches" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTab("branches")}
-          >
-            Chi nhánh
-          </Button>
-          <Button
-            variant={tab === "rooms" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTab("rooms")}
-          >
-            Phòng
-          </Button>
-        </div>
-      </div>
 
-      {tab === "branches" ? (
-        <div className="grid gap-3">
+        <TabsContent value="branches" className="grid gap-3 outline-none">
           <div className="flex items-center justify-between gap-2">
             <div className="text-sm font-medium">Danh sách chi nhánh</div>
             <div className="flex items-center gap-2">
@@ -663,15 +639,7 @@ export function SettingsPage() {
                         <Button variant="outline" size="xs" onClick={() => openEditBranch(b)}>
                           Sửa
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="xs"
-                          onClick={() => {
-                            const ok = confirm(`Xóa chi nhánh "${b.name}"? (Sẽ xóa cả phòng thuộc chi nhánh)`)
-                            if (!ok) return
-                            void deleteBranch(b.id)
-                          }}
-                        >
+                        <Button variant="destructive" size="xs" onClick={() => setDeleteConfirm({ kind: "branch", branch: b })}>
                           Xóa
                         </Button>
                       </div>
@@ -717,11 +685,7 @@ export function SettingsPage() {
                             <Button
                               variant="destructive"
                               size="xs"
-                              onClick={() => {
-                                const ok = confirm(`Xóa chi nhánh "${b.name}"? (Sẽ xóa cả phòng thuộc chi nhánh)`)
-                                if (!ok) return
-                                void deleteBranch(b.id)
-                              }}
+                              onClick={() => setDeleteConfirm({ kind: "branch", branch: b })}
                             >
                               Xóa
                             </Button>
@@ -734,30 +698,40 @@ export function SettingsPage() {
               </table>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          <div className="flex items-center justify-between gap-2">
+        </TabsContent>
+
+        <TabsContent value="rooms" className="grid gap-3 outline-none">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="grid gap-1">
               <div className="text-sm font-medium">Danh sách phòng</div>
               <div className="text-xs text-muted-foreground">Chọn chi nhánh để lọc phòng.</div>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="grid gap-1 text-xs">
-                <div className="text-muted-foreground">Chi nhánh</div>
-                <select
-                  className="h-9 border bg-background px-2 text-sm"
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="grid gap-1.5 text-xs min-w-[10rem]">
+                <Label>Chi nhánh</Label>
+                <Select
                   value={roomsBranchId}
-                  onChange={(e) => setRoomsBranchId(e.target.value as UUID | "all")}
+                  onValueChange={(v) => setRoomsBranchId(v as UUID | "all")}
                 >
-                  <option value="all">Tất cả</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {(value) =>
+                        value === "all"
+                          ? "Tất cả"
+                          : branches.find((b) => b.id === value)?.name ?? String(value ?? "")
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button size="sm" onClick={() => openAddRoom()}>
                 Thêm phòng
               </Button>
@@ -806,11 +780,7 @@ export function SettingsPage() {
                         <Button
                           variant="destructive"
                           size="xs"
-                          onClick={() => {
-                            const ok = confirm(`Xóa phòng ${r.room_number}?`)
-                            if (!ok) return
-                            void deleteRoom(r.id)
-                          }}
+                          onClick={() => setDeleteConfirm({ kind: "room", room: r })}
                         >
                           Xóa
                         </Button>
@@ -869,11 +839,7 @@ export function SettingsPage() {
                             <Button
                               variant="destructive"
                               size="xs"
-                              onClick={() => {
-                                const ok = confirm(`Xóa phòng ${r.room_number}?`)
-                                if (!ok) return
-                                void deleteRoom(r.id)
-                              }}
+                              onClick={() => setDeleteConfirm({ kind: "room", room: r })}
                             >
                               Xóa
                             </Button>
@@ -886,8 +852,42 @@ export function SettingsPage() {
               </table>
             </div>
           </div>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
+
+      <AlertDialog open={deleteConfirm !== null} onOpenChange={(o) => !o && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.kind === "branch"
+                ? `Xóa chi nhánh "${deleteConfirm.branch.name}"? (Sẽ xóa cả phòng thuộc chi nhánh)`
+                : deleteConfirm?.kind === "room"
+                  ? `Xóa phòng ${deleteConfirm.room.room_number}?`
+                  : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirm?.kind === "branch") {
+                  void deleteBranch(deleteConfirm.branch.id).then(() => {
+                    setDeleteConfirm(null)
+                  })
+                } else if (deleteConfirm?.kind === "room") {
+                  void deleteRoom(deleteConfirm.room.id).then(() => {
+                    setDeleteConfirm(null)
+                  })
+                }
+              }}
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

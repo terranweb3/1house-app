@@ -5,17 +5,16 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { QuickAddDialog } from "@/components/revenue/QuickAddDialog"
 import { QuickAddFab } from "@/components/revenue/QuickAddFab"
 import { Button } from "@/components/ui/button"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { useAuth } from "@/hooks/useAuth"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 export function AppLayout() {
-  const { user } = useAuth()
   const location = useLocation()
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
 
   const pageTitle = useMemo(() => {
     const p = location.pathname
     if (p === "/") return "Tổng quan"
+    if (p.startsWith("/rooms")) return "Phòng"
     if (p.startsWith("/revenue")) return "Doanh thu"
     if (p.startsWith("/settings")) return "Cài đặt"
     return "1House"
@@ -23,34 +22,27 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-dvh w-full overflow-x-hidden md:grid md:grid-cols-[14rem_1fr]">
-        <QuickAddDialog open={isQuickAddOpen} onOpenChange={setIsQuickAddOpen} />
-        <QuickAddFab onClick={() => setIsQuickAddOpen(true)} />
+      <QuickAddDialog open={isQuickAddOpen} onOpenChange={setIsQuickAddOpen} />
+      <QuickAddFab onClick={() => setIsQuickAddOpen(true)} />
 
-        <AppSidebar />
+      <AppSidebar />
 
-        <div className="min-w-0">
-          <header className="h-14 border-b px-3 sm:px-4 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <SidebarTrigger className="md:hidden" />
-              <div className="min-w-0">
-                <div className="text-sm font-medium truncate">{pageTitle}</div>
-                <div className="text-xs text-muted-foreground truncate hidden sm:block">
-                  {user?.email ? <>Đăng nhập: {user.email}</> : null}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsQuickAddOpen(true)}>
-                Nhập nhanh
-              </Button>
-            </div>
-          </header>
-          <main className="p-3 sm:p-4 min-w-0 overflow-x-hidden">
-            <Outlet />
-          </main>
+      <SidebarInset className="min-h-svh min-w-0 overflow-x-hidden">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <SidebarTrigger title="Thu gọn / mở menu" aria-label="Thu gọn hoặc mở menu điều hướng" />
+            <div className="min-w-0 truncate text-sm font-medium">{pageTitle}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsQuickAddOpen(true)}>
+              Nhập nhanh
+            </Button>
+          </div>
+        </header>
+        <div className="min-w-0 flex-1 overflow-x-hidden p-2 sm:p-3">
+          <Outlet />
         </div>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }

@@ -14,7 +14,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "icons.svg", "pwa.svg"],
+      includeAssets: [
+        "favicon.svg",
+        "icons.svg",
+        "pwa.svg",
+        "apple-touch-icon.png",
+        "pwa-192.png",
+        "pwa-512.png",
+      ],
       manifest: {
         name: "1House",
         short_name: "1House",
@@ -26,9 +33,15 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "/pwa.svg",
+            src: "/pwa-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "/pwa-512.png",
             sizes: "512x512",
-            type: "image/svg+xml",
+            type: "image/png",
             purpose: "any maskable",
           },
         ],

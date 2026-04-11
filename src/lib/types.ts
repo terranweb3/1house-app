@@ -40,6 +40,7 @@ export type RoomDayMeta = {
   guest_phone: string | null
   payment_status: PaymentStatus
   note: string | null
+  cleaned: boolean
   created_at: string
   updated_at: string
 }

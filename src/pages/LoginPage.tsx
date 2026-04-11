@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/useAuth"
 
 export function LoginPage() {
@@ -31,45 +35,49 @@ export function LoginPage() {
 
   return (
     <div className="min-h-dvh w-full grid place-items-center p-4">
-      <div className="w-full max-w-sm border bg-card text-card-foreground p-6">
-        <div className="mb-6">
-          <div className="text-lg font-semibold">1House</div>
-          <div className="text-sm text-muted-foreground">Đăng nhập nhân viên</div>
-        </div>
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>1House</CardTitle>
+          <CardDescription>Đăng nhập nhân viên</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-3" onSubmit={onSubmit}>
+            <div className="grid gap-1.5">
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                autoComplete="email"
+                required
+              />
+            </div>
 
-        <form className="grid gap-3" onSubmit={onSubmit}>
-          <label className="grid gap-1 text-sm">
-            <div>Email</div>
-            <input
-              className="h-9 px-2.5 border bg-background"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-              required
-            />
-          </label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="login-password">Mật khẩu</Label>
+              <Input
+                id="login-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
 
-          <label className="grid gap-1 text-sm">
-            <div>Mật khẩu</div>
-            <input
-              className="h-9 px-2.5 border bg-background"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </label>
+            {error ? (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          {error ? <div className="text-xs text-destructive">{error}</div> : null}
-
-          <Button type="submit" disabled={!canSubmit || isSubmitting}>
-            {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
-          </Button>
-        </form>
-      </div>
+            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+              {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
-

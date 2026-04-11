@@ -128,3 +128,23 @@
     @apply font-mono;
     }
 }
+
+/* Rooms calendar: days with recorded revenue (rates) */
+.has-revenue-dot button[data-selected-single="true"]::after,
+.has-revenue-dot button[data-range-start="true"]::after,
+.has-revenue-dot button[data-range-end="true"]::after {
+  opacity: 0.9;
+}
+
+.has-revenue-dot button::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  @apply bg-emerald-500;
+  pointer-events: none;
+}

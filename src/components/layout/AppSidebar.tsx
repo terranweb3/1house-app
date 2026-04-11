@@ -1,68 +1,100 @@
-import { GearSix, House, Moon, Sun, Tag } from "@phosphor-icons/react"
-import { NavLink } from "react-router-dom"
+import { Door, GearSix, House, Moon, Sun, Tag, X } from "@phosphor-icons/react"
+import { matchPath, NavLink, useLocation } from "react-router-dom"
 
-import { Sidebar, SidebarClose, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from "@/components/ui/sidebar"
 import { useAuth } from "@/hooks/useAuth"
 import { useTheme } from "@/contexts/ThemeContext"
-import { cn } from "@/lib/utils"
 
 const navItems = [
   { to: "/", label: "Tổng quan", icon: House },
+  { to: "/rooms", label: "Phòng", icon: Door },
   { to: "/revenue", label: "Doanh thu", icon: Tag },
   { to: "/settings", label: "Cài đặt", icon: GearSix },
 ] as const
 
-export function AppSidebar({ className }: { className?: string }) {
+function navActive(to: string, pathname: string) {
+  return matchPath({ path: to, end: to === "/" }, pathname) != null
+}
+
+export function AppSidebar() {
+  const { pathname } = useLocation()
   const { signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   return (
-    <Sidebar className={cn("bg-sidebar text-sidebar-foreground flex flex-col min-h-0", className)}>
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <div className="flex items-center justify-between gap-2">
           <div className="font-semibold">1House</div>
-          <SidebarClose className="md:hidden" />
+          {isMobile ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setOpenMobile(false)}
+              aria-label="Đóng menu"
+            >
+              <X className="size-4" />
+            </Button>
+          ) : null}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
-        <nav className="grid gap-1">
+        <SidebarMenu>
           {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  "h-9 px-2.5 inline-flex items-center gap-2 border border-transparent hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border"
-                )
-              }
-              end={to === "/"}
-            >
-              <Icon size={16} />
-              <span className="text-sm">{label}</span>
-            </NavLink>
+            <SidebarMenuItem key={to}>
+              <SidebarMenuButton
+                isActive={navActive(to, pathname)}
+                render={
+                  <NavLink
+                    to={to}
+                    end={to === "/"}
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false)
+                    }}
+                  />
+                }
+              >
+                <Icon className="size-4" />
+                <span>{label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           ))}
-        </nav>
+        </SidebarMenu>
       </SidebarContent>
 
       <SidebarFooter>
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={() => toggleTheme()}
-          aria-label="Chuyển đổi giao diện sáng/tối"
-          title="Dark mode"
-        >
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-        </Button>
-        <Button variant="outline" className="w-full justify-start" onClick={() => void signOut()}>
-          Đăng xuất
-        </Button>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => toggleTheme()}
+              aria-label="Chuyển đổi giao diện sáng/tối"
+              title="Dark mode"
+            >
+              {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+              <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => void signOut()}>Đăng xuất</SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }
-

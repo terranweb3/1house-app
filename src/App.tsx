@@ -6,6 +6,7 @@ import { LoginPage } from "@/pages/LoginPage"
 import { DashboardPage } from "@/pages/DashboardPage"
 import { RatesPage } from "@/pages/RatesPage"
 import { SettingsPage } from "@/pages/SettingsPage"
+import { RoomsPage } from "@/pages/RoomsPage"
 import { useAuth } from "@/hooks/useAuth"
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/revenue" element={<RatesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

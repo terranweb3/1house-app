@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import type { Rate, UUID } from "@/lib/types"
 import { supabase } from "@/lib/supabase"
 
-export function useRates(args: { branchId: UUID | "all"; from: string; to: string }) {
+export function useRates(args: { branchId: UUID | "all"; from: string; to: string; enabled?: boolean }) {
+  const enabled = args.enabled !== false
   const [rates, setRates] = useState<Rate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -11,6 +12,12 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
   const key = useMemo(() => `${args.branchId}:${args.from}:${args.to}`, [args.branchId, args.from, args.to])
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setRates([])
+      setIsLoading(false)
+      setError(null)
+      return
+    }
     setIsLoading(true)
     setError(null)
     try {
@@ -31,12 +38,12 @@ export function useRates(args: { branchId: UUID | "all"; from: string; to: strin
     } finally {
       setIsLoading(false)
     }
-  }, [args.branchId, args.from, args.to])
+  }, [args.branchId, args.from, args.to, enabled])
 
   useEffect(() => {
     void refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
+  }, [key, enabled])
 
   const upsertRate = useCallback(
     async (input: { branchId: UUID; roomId: UUID; date: string; price: number }) => {
