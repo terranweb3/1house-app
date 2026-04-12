@@ -2,6 +2,7 @@ import { format, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { BookingDatePicker } from "@/components/booking/BookingDatePicker";
 import { BookingRoomCombobox } from "@/components/booking/BookingRoomCombobox";
 import { sortRooms } from "@/components/booking/sortRooms";
 import { Button } from "@/components/ui/button";
@@ -475,13 +476,11 @@ export function BookingDialog({
                     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 md:contents">
                       <div className="grid min-w-0 gap-1 text-xs">
                         <Label htmlFor={`bd-from-${item.id}`}>Từ ngày</Label>
-                        <Input
+                        <BookingDatePicker
                           id={`bd-from-${item.id}`}
-                          type="date"
-                          className="min-w-0 max-w-full scheme-light dark:scheme-dark"
                           value={item.fromDate}
-                          onChange={(e) =>
-                            updateItem(item.id, "fromDate", e.target.value)
+                          onChange={(v) =>
+                            updateItem(item.id, "fromDate", v)
                           }
                           disabled={readOnly}
                         />
@@ -489,14 +488,10 @@ export function BookingDialog({
 
                       <div className="grid min-w-0 gap-1 text-xs">
                         <Label htmlFor={`bd-to-${item.id}`}>Đến ngày</Label>
-                        <Input
+                        <BookingDatePicker
                           id={`bd-to-${item.id}`}
-                          type="date"
-                          className="min-w-0 max-w-full scheme-light dark:scheme-dark"
                           value={item.toDate}
-                          onChange={(e) =>
-                            updateItem(item.id, "toDate", e.target.value)
-                          }
+                          onChange={(v) => updateItem(item.id, "toDate", v)}
                           disabled={readOnly}
                         />
                       </div>

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { MonthPicker } from "@/components/pickers/MonthPicker"
 import { useBranches } from "@/hooks/useBranches"
 import { useRooms } from "@/hooks/useRooms"
 import { useRates } from "@/hooks/useRates"
@@ -778,18 +779,12 @@ export function RatesPage() {
 
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="rates-month">Tháng</Label>
-            <div className="grid min-w-0 grid-cols-[1fr_auto_auto] gap-2">
-              <Input
-                id="rates-month"
-                className="min-w-0"
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-              />
+            <div className="grid min-w-0 grid-cols-[auto_1fr_auto] items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 type="button"
+                className="shrink-0 px-2.5"
                 onClick={() => {
                   setMonth(plusMonth(month, -1))
                 }}
@@ -797,10 +792,16 @@ export function RatesPage() {
               >
                 ‹
               </Button>
+              <MonthPicker
+                id="rates-month"
+                value={month}
+                onChange={setMonth}
+              />
               <Button
                 variant="outline"
                 size="sm"
                 type="button"
+                className="shrink-0 px-2.5"
                 onClick={() => {
                   setMonth(plusMonth(month, +1))
                 }}

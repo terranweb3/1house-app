@@ -1,5 +1,4 @@
 import { endOfMonth, format, isValid, parseISO, startOfMonth } from "date-fns";
-import { vi } from "date-fns/locale";
 import {
   useCallback,
   useEffect,
@@ -12,7 +11,7 @@ import {
 import { BookingDialog } from "@/components/booking/BookingDialog";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { DayCalendarPopover } from "@/components/pickers/DayCalendarPopover";
 import {
   Card,
   CardContent,
@@ -996,35 +995,24 @@ export function RoomsPage() {
               </div>
             </div>
 
-            <div className="grid w-full shrink-0 gap-1.5 text-xs md:w-auto md:justify-self-end">
-              <Label className="text-center md:text-right">Chọn ngày</Label>
-              <div className="flex w-full justify-center overflow-x-auto rounded-lg border border-border/70 bg-muted/20 p-2 md:w-fit md:justify-end md:p-1.5">
-                <Calendar
-                  mode="single"
-                  locale={vi}
-                  month={displayMonth}
-                  onMonthChange={(m) => setDisplayMonth(m)}
-                  selected={parseISO(selectedDate)}
-                  onSelect={(d) => {
-                    if (!d) return;
-                    setSelectedDate(format(d, "yyyy-MM-dd"));
-                    setDisplayMonth(startOfMonth(d));
-                  }}
-                  modifiers={{
-                    hasRevenue: (date) =>
-                      daysWithRevenue.has(format(date, "yyyy-MM-dd")),
-                  }}
-                  modifiersClassNames={{
-                    hasRevenue: "has-revenue-dot",
-                  }}
-                  className={cn(
-                    "p-0",
-                    /* Mobile: full width, ô lớn dễ bấm. Desktop: lịch nhỏ gọn, không chiếm dọc quá nhiều */
-                    "w-full max-w-full md:w-fit md:max-w-none",
-                    "[--cell-size:min(3rem,calc((100vw-2.25rem)/7))] md:[--cell-size:1.875rem] lg:[--cell-size:1.8125rem]",
-                  )}
-                />
-              </div>
+            <div className="grid w-full shrink-0 gap-1.5 text-xs md:w-auto md:justify-self-end md:min-w-48">
+              <Label
+                htmlFor="rooms-pick-day"
+                className="text-center md:text-right"
+              >
+                Chọn ngày
+              </Label>
+              <DayCalendarPopover
+                id="rooms-pick-day"
+                selectedDate={selectedDate}
+                onSelectDate={(iso) => {
+                  setSelectedDate(iso);
+                  setDisplayMonth(startOfMonth(parseISO(iso)));
+                }}
+                month={displayMonth}
+                onMonthChange={setDisplayMonth}
+                revenueDates={daysWithRevenue}
+              />
             </div>
           </div>
         </CardContent>

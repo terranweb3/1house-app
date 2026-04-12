@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { MonthPicker } from "@/components/pickers/MonthPicker"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
@@ -235,21 +235,20 @@ export function DashboardPage() {
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
             <div className="grid gap-1.5">
               <Label htmlFor="dash-month">Tháng chính</Label>
-              <Input
+              <MonthPicker
                 id="dash-month"
-                type="month"
                 value={month}
-                onChange={(e) => setMonth(e.target.value)}
+                onChange={setMonth}
               />
             </div>
 
             <div className="grid gap-1.5">
               <Label htmlFor="dash-compare">So sánh với</Label>
-              <Input
+              <MonthPicker
                 id="dash-compare"
-                type="month"
                 value={compareMonth ?? ""}
-                onChange={(e) => setCompareMonth(e.target.value ? e.target.value : null)}
+                onChange={(v) => setCompareMonth(v.trim() ? v : null)}
+                placeholder="Chưa chọn"
               />
             </div>
 
