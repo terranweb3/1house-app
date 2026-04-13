@@ -1,11 +1,6 @@
 import { format, isValid, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
-import {
-  CalendarBlankIcon,
-  CaretDown,
-  CaretLeft,
-  CaretRight,
-} from "@phosphor-icons/react";
+import { CaretDown, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
