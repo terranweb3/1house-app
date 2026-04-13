@@ -117,6 +117,20 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/*
+  Safari / iOS < 16.4: không hỗ trợ oklch() — biến --destructive invalid khiến mọi
+  text-destructive, border-destructive, nút/alert destructive gần như mất màu.
+  Fallback sRGB khi trình duyệt không parse được oklch (giữ nguyên oklch khi hỗ trợ).
+*/
+@supports not (color: oklch(0.5 0 0)) {
+  :root {
+    --destructive: #e11d48;
+  }
+  .dark {
+    --destructive: #fb7185;
+  }
+}
+
 @layer base {
   /*
     iOS Safari: ô date native có phần -webkit-datetime-edit khá rộng, dễ tràn khỏi card/flex
