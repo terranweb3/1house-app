@@ -288,9 +288,10 @@ function SummaryFilterBadge({
       onClick={onClick}
       className={cn(
         badgeVariants({ variant: "outline" }),
-        "h-auto min-h-5 shrink-0 cursor-pointer select-none text-xs font-medium transition-shadow",
-        active && "ring-2 ring-ring ring-offset-2 ring-offset-background",
+        "h-auto min-h-5 shrink-0 cursor-pointer select-none text-xs font-medium transition-colors",
         className,
+        active &&
+          "border-primary bg-primary/12 font-semibold text-foreground shadow-sm",
       )}
     >
       {children}
@@ -642,7 +643,9 @@ export function RoomsPage() {
         paymentPartialAmount = patch.paymentPartialAmount;
       } else {
         paymentPartialAmount =
-          prevPartial != null && Number.isFinite(prevPartial) ? prevPartial : null;
+          prevPartial != null && Number.isFinite(prevPartial)
+            ? prevPartial
+            : null;
       }
     }
     const cleaned = patch.cleaned ?? meta?.cleaned ?? false;
@@ -858,7 +861,10 @@ export function RoomsPage() {
         </Button>
       </div>
 
-      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
+      <Card
+        size="sm"
+        className="transition-shadow hover:shadow-[var(--shadow-warm-md)]"
+      >
         <CardContent className="py-3 sm:py-3.5">
           {/* Mobile: lịch full width + ô lớn. Desktop: full width — lọc giãn trái, lịch gọn căn phải (tránh cụm giữa hai bên trống) */}
           <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6 lg:gap-8">
@@ -1018,61 +1024,71 @@ export function RoomsPage() {
         </CardContent>
       </Card>
 
+      <Card
+        size="sm"
+        className="border-border/60 bg-muted/20 shadow-[var(--shadow-warm-sm)]"
+      >
+        <CardContent className="space-y-2 py-2.5 sm:py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Tóm tắt nhanh
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <SummaryFilterBadge
+              active={isSummaryBadgeActive("total")}
+              onClick={() => onSummaryBadgeClick("total")}
+              className="border-border bg-background/80"
+            >
+              <strong className="tabular-nums">{summary.total}</strong> phòng
+            </SummaryFilterBadge>
+            <SummaryFilterBadge
+              active={isSummaryBadgeActive("occupied")}
+              onClick={() => onSummaryBadgeClick("occupied")}
+              className="border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+            >
+              <strong className="tabular-nums">{summary.occupied}</strong> đang ở
+            </SummaryFilterBadge>
+            <SummaryFilterBadge
+              active={isSummaryBadgeActive("empty")}
+              onClick={() => onSummaryBadgeClick("empty")}
+              className="border-muted-foreground/25 bg-background/60"
+            >
+              <strong className="tabular-nums">{summary.empty}</strong> trống
+            </SummaryFilterBadge>
+            {summary.maintenance > 0 || isSummaryBadgeActive("maintenance") ? (
+              <SummaryFilterBadge
+                active={isSummaryBadgeActive("maintenance")}
+                onClick={() => onSummaryBadgeClick("maintenance")}
+                className="border-amber-500/35 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+              >
+                <strong className="tabular-nums">{summary.maintenance}</strong> bảo
+                trì
+              </SummaryFilterBadge>
+            ) : null}
+            <SummaryFilterBadge
+              active={isSummaryBadgeActive("needs_clean")}
+              onClick={() => onSummaryBadgeClick("needs_clean")}
+              className="border-destructive/35 bg-destructive/10 text-destructive"
+            >
+              <strong className="tabular-nums">
+                {summary.needsCleanAfterCheckout}
+              </strong>{" "}
+              cần dọn
+            </SummaryFilterBadge>
+            <SummaryFilterBadge
+              active={isSummaryBadgeActive("unpaid")}
+              onClick={() => onSummaryBadgeClick("unpaid")}
+              className="border-destructive/30 bg-destructive/10 text-destructive"
+            >
+              <strong className="tabular-nums">{summary.notPaid}</strong> chưa thu
+              tiền
+            </SummaryFilterBadge>
+          </div>
+        </CardContent>
+      </Card>
+
       {loadError ? (
         <div className="text-sm text-destructive">{loadError}</div>
       ) : null}
-
-      <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden px-1 pb-1 scrollbar-none [-webkit-overflow-scrolling:touch] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-        <SummaryFilterBadge
-          active={isSummaryBadgeActive("total")}
-          onClick={() => onSummaryBadgeClick("total")}
-          className="border-border bg-muted/30"
-        >
-          <strong className="tabular-nums">{summary.total}</strong> phòng
-        </SummaryFilterBadge>
-        <SummaryFilterBadge
-          active={isSummaryBadgeActive("occupied")}
-          onClick={() => onSummaryBadgeClick("occupied")}
-          className="border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-        >
-          <strong className="tabular-nums">{summary.occupied}</strong> đang ở
-        </SummaryFilterBadge>
-        <SummaryFilterBadge
-          active={isSummaryBadgeActive("empty")}
-          onClick={() => onSummaryBadgeClick("empty")}
-          className="border-muted-foreground/25 bg-muted/30"
-        >
-          <strong className="tabular-nums">{summary.empty}</strong> trống
-        </SummaryFilterBadge>
-        {summary.maintenance > 0 || isSummaryBadgeActive("maintenance") ? (
-          <SummaryFilterBadge
-            active={isSummaryBadgeActive("maintenance")}
-            onClick={() => onSummaryBadgeClick("maintenance")}
-            className="border-amber-500/35 bg-amber-500/10 text-amber-900 dark:text-amber-200"
-          >
-            <strong className="tabular-nums">{summary.maintenance}</strong> bảo
-            trì
-          </SummaryFilterBadge>
-        ) : null}
-        <SummaryFilterBadge
-          active={isSummaryBadgeActive("needs_clean")}
-          onClick={() => onSummaryBadgeClick("needs_clean")}
-          className="border-destructive/35 bg-destructive/10 text-destructive"
-        >
-          <strong className="tabular-nums">
-            {summary.needsCleanAfterCheckout}
-          </strong>{" "}
-          cần dọn
-        </SummaryFilterBadge>
-        <SummaryFilterBadge
-          active={isSummaryBadgeActive("unpaid")}
-          onClick={() => onSummaryBadgeClick("unpaid")}
-          className="border-destructive/30 bg-destructive/10 text-destructive"
-        >
-          <strong className="tabular-nums">{summary.notPaid}</strong> chưa thu
-          tiền
-        </SummaryFilterBadge>
-      </div>
 
       {blockingLoad ? (
         <div className="text-sm text-muted-foreground">Đang tải...</div>
@@ -1191,7 +1207,7 @@ export function RoomsPage() {
                             ? "Đã thu"
                             : paymentValue === "partial"
                               ? meta?.payment_partial_amount != null &&
-                                  Number(meta.payment_partial_amount) > 0
+                                Number(meta.payment_partial_amount) > 0
                                 ? `Thu một phần · ${Number(meta.payment_partial_amount).toLocaleString("vi-VN")} đ`
                                 : "Thu một phần"
                               : meta
