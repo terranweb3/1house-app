@@ -1,4 +1,13 @@
-import { Globe } from "@phosphor-icons/react"
+import {
+  Buildings,
+  ChartBar,
+  Coins,
+  CurrencyCircleDollar,
+  Globe,
+  Scales,
+  TrendUp,
+  WarningCircle,
+} from "@phosphor-icons/react"
 import { format, parseISO } from "date-fns"
 import { vi } from "date-fns/locale"
 import { useEffect, useMemo, useState } from "react"
@@ -9,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MonthPicker } from "@/components/pickers/MonthPicker"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
+import { useAuth } from "@/hooks/useAuth"
 import { useBookings } from "@/hooks/useBookings"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { formatBookingSourceLabel } from "@/lib/bookingSource"
@@ -107,7 +117,7 @@ function DailyBarChart({
   }
 
   return (
-    <Card size="sm">
+    <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
       <CardHeader className="pb-2 pt-3">
         <CardTitle>Ghi nhận theo ngày</CardTitle>
         <CardDescription>
@@ -165,7 +175,7 @@ function DailyBarChart({
                               title={`${currentLabel} ${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
                             >
                               <div
-                                className="w-full bg-primary/70 border border-primary/20 hover:bg-primary/85 rounded-sm shrink-0"
+                                className="w-full bg-primary/70 border border-primary/20 hover:bg-primary/85 rounded-md shrink-0 transition-colors"
                                 style={{ height: barH }}
                               />
                             </div>
@@ -178,7 +188,7 @@ function DailyBarChart({
                               }
                             >
                               <div
-                                className="w-full bg-muted-foreground/45 border border-border hover:bg-muted-foreground/55 rounded-sm shrink-0"
+                                className="w-full bg-muted-foreground/45 border border-border hover:bg-muted-foreground/55 rounded-md shrink-0 transition-colors"
                                 style={{ height: compareBarH }}
                               />
                             </div>
@@ -189,7 +199,7 @@ function DailyBarChart({
                             title={`${format(parseISO(p.date), "dd/MM")}: ${formatVnd(p.total)}`}
                           >
                             <div
-                              className="w-full bg-muted/40 border hover:bg-muted/60 shrink-0"
+                              className="w-full bg-muted/40 border hover:bg-muted/60 shrink-0 rounded-md transition-colors"
                               style={{ height: barH }}
                             />
                           </div>
@@ -213,9 +223,19 @@ function DailyBarChart({
   )
 }
 
+function greetingLabel() {
+  const h = new Date().getHours()
+  if (h < 12) return "Chào buổi sáng"
+  if (h < 18) return "Chào buổi chiều"
+  return "Chào buổi tối"
+}
+
 export function DashboardPage() {
   const [month, setMonth] = useState(() => ym(new Date()))
   const [compareMonth, setCompareMonth] = useState<string | null>(() => prevMonthYm(ym(new Date())))
+
+  const { user } = useAuth()
+  const displayName = user?.email?.split("@")[0] ?? "bạn"
 
   const { stats, isLoading, error, refresh } = useDashboardStats({ month, compareMonth })
   const { bookings, isLoading: bookingsLoading, refresh: refreshBookings } = useBookings()
@@ -255,17 +275,18 @@ export function DashboardPage() {
   const compareHint = stats.compareMonthLabel ? `So với ${stats.compareMonthLabel}` : "Chưa so sánh"
 
   return (
-    <div className="grid gap-2 sm:gap-3 min-w-0">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-0.5">
-          <div className="text-base font-semibold leading-tight sm:text-lg">Tổng quan</div>
-          <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
-            Theo dõi doanh thu theo tháng, theo ngày và theo chi nhánh.
-          </div>
+    <div className="grid gap-3 sm:gap-4 min-w-0">
+      <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/8 via-background to-amber-500/5 px-4 py-3 shadow-[var(--shadow-warm-sm)] sm:px-5 sm:py-4">
+        <div className="text-sm font-medium text-muted-foreground">{greetingLabel()},</div>
+        <div className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+          {displayName}
         </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Theo dõi doanh thu theo tháng, theo ngày và theo chi nhánh.
+        </p>
       </div>
 
-      <Card size="sm">
+      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
         <CardContent className="py-3 grid gap-2">
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
             <div className="grid gap-1.5">
@@ -323,12 +344,19 @@ export function DashboardPage() {
       ) : null}
 
       <div className="grid gap-2 md:grid-cols-3 md:gap-2.5">
-        <Card size="sm" className="border-emerald-500/25 bg-emerald-500/3 dark:bg-emerald-500/5">
+        <Card size="sm" className="border-emerald-500/25 bg-emerald-500/3 transition-shadow hover:shadow-[var(--shadow-warm-md)] dark:bg-emerald-500/5">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Đã thu</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-emerald-800 dark:text-emerald-300">
-              {isLoading ? "…" : formatVnd(stats.revenuePaid)}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                <CurrencyCircleDollar className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Đã thu</CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl text-emerald-800 dark:text-emerald-300">
+                  {isLoading ? "…" : formatVnd(stats.revenuePaid)}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             {compareHint}:{" "}
@@ -346,12 +374,19 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card size="sm" className="border-amber-500/25 bg-amber-500/3 dark:bg-amber-500/5">
+        <Card size="sm" className="border-amber-500/25 bg-amber-500/3 transition-shadow hover:shadow-[var(--shadow-warm-md)] dark:bg-amber-500/5">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Thu một phần</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-amber-900 dark:text-amber-200">
-              {isLoading ? "…" : formatVnd(stats.revenuePartial)}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-200">
+                <Coins className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Thu một phần</CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl text-amber-900 dark:text-amber-200">
+                  {isLoading ? "…" : formatVnd(stats.revenuePartial)}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             {compareHint}:{" "}
@@ -369,12 +404,19 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card size="sm" className="border-destructive/20 bg-destructive/3 dark:bg-destructive/10">
+        <Card size="sm" className="border-destructive/20 bg-destructive/3 transition-shadow hover:shadow-[var(--shadow-warm-md)] dark:bg-destructive/10">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Chưa thu</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl text-destructive">
-              {isLoading ? "…" : formatVnd(stats.revenueUnpaid)}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/12 text-destructive">
+                <WarningCircle className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Chưa thu</CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl text-destructive">
+                  {isLoading ? "…" : formatVnd(stats.revenueUnpaid)}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             {compareHint}:{" "}
@@ -394,12 +436,19 @@ export function DashboardPage() {
       </div>
 
       <div className="grid gap-2 md:grid-cols-2 md:gap-2.5">
-        <Card size="sm">
+        <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Tổng ghi nhận (tháng)</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
-              {isLoading ? "…" : formatVnd(stats.totalThisMonth)}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ChartBar className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Tổng ghi nhận (tháng)</CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl">
+                  {isLoading ? "…" : formatVnd(stats.totalThisMonth)}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground leading-relaxed">
             Cộng 3 loại theo thanh toán (đã thu + thu một phần + chưa thu). Trùng với tổng số tiền đã nhập trên lịch doanh thu.
@@ -415,22 +464,36 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card size="sm">
+        <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Trung bình ghi nhận / ngày</CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
-              {isLoading ? "…" : formatVnd(Math.round(stats.avgPerDay))}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <TrendUp className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Trung bình ghi nhận / ngày</CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl">
+                  {isLoading ? "…" : formatVnd(Math.round(stats.avgPerDay))}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">Tổng ghi nhận chia cho số ngày trong tháng.</CardContent>
         </Card>
 
-        <Card size="sm">
+        <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>Phòng có doanh thu</CardDescription>
-            <div className="flex items-baseline gap-2">
-              <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">{isLoading ? "…" : stats.roomsWithRevenue}</CardTitle>
-              <span className="text-sm text-muted-foreground tabular-nums">/ {isLoading ? "…" : stats.totalRooms}</span>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/12 text-sky-800 dark:text-sky-300">
+                <Buildings className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>Phòng có doanh thu</CardDescription>
+                <div className="flex items-baseline gap-2">
+                  <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl">{isLoading ? "…" : stats.roomsWithRevenue}</CardTitle>
+                  <span className="text-sm text-muted-foreground tabular-mono">/ {isLoading ? "…" : stats.totalRooms}</span>
+                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -438,14 +501,21 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card size="sm">
+        <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
           <CardHeader className="pb-1.5 pt-3">
-            <CardDescription>
-              {stats.compareMonthLabel ? `Tổng ghi nhận (${stats.compareMonthLabel})` : "Tổng ghi nhận (tháng so sánh)"}
-            </CardDescription>
-            <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
-              {isLoading ? "…" : stats.compareMonth ? formatVnd(stats.totalCompareMonth) : "—"}
-            </CardTitle>
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-800 dark:text-violet-300">
+                <Scales className="size-5" weight="duotone" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <CardDescription>
+                  {stats.compareMonthLabel ? `Tổng ghi nhận (${stats.compareMonthLabel})` : "Tổng ghi nhận (tháng so sánh)"}
+                </CardDescription>
+                <CardTitle className="text-xl font-semibold tabular-mono sm:text-2xl">
+                  {isLoading ? "…" : stats.compareMonth ? formatVnd(stats.totalCompareMonth) : "—"}
+                </CardTitle>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             {stats.compareMonth ? "Để đối chiếu % tăng/giảm tổng." : "Bật so sánh để xem tổng tháng đối chiếu."}
@@ -453,12 +523,12 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <Card size="sm">
-        <CardHeader className="pb-2 pt-3">
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="size-5 text-muted-foreground shrink-0" aria-hidden />
-            Đặt phòng theo nguồn
-          </CardTitle>
+    <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
+      <CardHeader className="pb-2 pt-3">
+        <CardTitle className="flex items-center gap-2">
+          <Globe className="size-5 text-primary shrink-0" aria-hidden weight="duotone" />
+          Đặt phòng theo nguồn
+        </CardTitle>
           <CardDescription>
             Số lượng đặt có ít nhất một đêm trong {formatMonthTitle(month)}
             {bookingCountInMonth > 0 ? ` · ${bookingCountInMonth} đặt` : ""}.
@@ -493,9 +563,12 @@ export function DashboardPage() {
         compareLabel={stats.compareMonthLabel}
       />
 
-      <Card size="sm">
+      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
         <CardHeader className="pb-2 pt-3">
-          <CardTitle>Xếp hạng chi nhánh</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Buildings className="size-5 text-primary shrink-0" weight="duotone" />
+            Xếp hạng chi nhánh
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-1.5 pb-3">
           {isLoading ? (

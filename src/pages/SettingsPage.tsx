@@ -744,12 +744,12 @@ export function SettingsPage() {
         onValueChange={(v) => setTab(v as "branches" | "rooms")}
         className="grid gap-2 sm:gap-3"
       >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 space-y-0.5">
-            <div className="text-base font-semibold leading-tight sm:text-lg">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="text-lg font-bold leading-tight tracking-tight sm:text-xl">
               Cài đặt
             </div>
-            <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
+            <div className="text-sm text-muted-foreground leading-snug">
               Quản lý chi nhánh và phòng.
             </div>
           </div>
@@ -780,7 +780,7 @@ export function SettingsPage() {
             <div className="text-sm text-destructive">{branchesError}</div>
           ) : null}
 
-          <div className="border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-[var(--shadow-warm-sm)]">
             {/* Mobile: cards (avoid sticky header issues) */}
             <div className="md:hidden">
               {isBranchesLoading ? (
@@ -830,7 +830,7 @@ export function SettingsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block max-h-[60vh] overflow-auto [-webkit-overflow-scrolling:touch]">
               <table className="min-w-[900px] w-full text-sm">
-                <thead className="sticky top-0 z-20 bg-card border-b shadow-sm">
+                <thead className="sticky top-0 z-20 border-b border-border/50 bg-muted/30 backdrop-blur-sm">
                   <tr className="text-left">
                     <th className="p-3 font-medium">Tên</th>
                     <th className="p-3 font-medium">Địa chỉ</th>
@@ -852,7 +852,7 @@ export function SettingsPage() {
                     </tr>
                   ) : (
                     branches.map((b) => (
-                      <tr key={b.id} className="border-t">
+                      <tr key={b.id} className="border-t border-border/40 transition-colors hover:bg-muted/25">
                         <td className="p-3">{b.name}</td>
                         <td className="p-3">{b.address ?? ""}</td>
                         <td className="p-3">
@@ -943,7 +943,7 @@ export function SettingsPage() {
             <div className="text-sm text-destructive">{roomsError}</div>
           ) : null}
 
-          <div className="border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-[var(--shadow-warm-sm)]">
             {/* Mobile: cards */}
             <div className="md:hidden">
               {isRoomsLoading ? (
@@ -1009,7 +1009,7 @@ export function SettingsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block max-h-[60vh] overflow-auto [-webkit-overflow-scrolling:touch]">
               <table className="min-w-[1000px] w-full text-sm">
-                <thead className="sticky top-0 z-20 bg-card border-b shadow-sm">
+                <thead className="sticky top-0 z-20 border-b border-border/50 bg-muted/30 backdrop-blur-sm">
                   <tr className="text-left">
                     <th className="p-3 font-medium">Chi nhánh</th>
                     <th className="p-3 font-medium">Số phòng</th>
@@ -1034,7 +1034,7 @@ export function SettingsPage() {
                     </tr>
                   ) : (
                     rooms.map((r) => (
-                      <tr key={r.id} className="border-t">
+                      <tr key={r.id} className="border-t border-border/40 transition-colors hover:bg-muted/25">
                         <td className="p-3">
                           {branchNameById.get(r.branch_id) ?? r.branch_id}
                         </td>

@@ -833,11 +833,11 @@ export function RoomsPage() {
       />
 
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-0.5">
-          <div className="text-base font-semibold leading-tight sm:text-lg">
+        <div className="min-w-0 space-y-1">
+          <div className="text-lg font-bold leading-tight tracking-tight sm:text-xl">
             Quản lý phòng
           </div>
-          <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
+          <div className="text-sm text-muted-foreground leading-snug">
             Tình trạng check-in, dọn phòng, thu tiền theo ngày — chỉnh sửa nhanh
             từng phòng.
           </div>
@@ -858,7 +858,7 @@ export function RoomsPage() {
         </Button>
       </div>
 
-      <Card size="sm">
+      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
         <CardContent className="py-3 sm:py-3.5">
           {/* Mobile: lịch full width + ô lớn. Desktop: full width — lọc giãn trái, lịch gọn căn phải (tránh cụm giữa hai bên trống) */}
           <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6 lg:gap-8">
@@ -1143,7 +1143,11 @@ export function RoomsPage() {
             const checkOutLine = formatMetaDateTime(meta?.checked_out_at);
 
             return (
-              <Card key={r.id} size="sm" className="rounded-md">
+              <Card
+                key={r.id}
+                size="sm"
+                className="transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-warm-md)]"
+              >
                 <CardHeader className="pb-1.5 pt-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">

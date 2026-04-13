@@ -598,7 +598,7 @@ export function RatesPage() {
             ) : null}
           </DialogHeader>
 
-          <ScrollArea className="h-[min(70vh,520px)] border bg-background rounded-md">
+          <ScrollArea className="h-[min(70vh,520px)] rounded-xl border border-border/50 bg-background shadow-inner">
             <div className="divide-y pr-3">
               {flatRooms.length === 0 ? (
                 <div className="p-3 text-sm text-muted-foreground">Chưa có phòng.</div>
@@ -740,15 +740,15 @@ export function RatesPage() {
       </Dialog>
 
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-0.5">
-          <div className="text-base font-semibold leading-tight sm:text-lg">Doanh thu</div>
-          <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
+        <div className="min-w-0 space-y-1">
+          <div className="text-lg font-bold leading-tight tracking-tight sm:text-xl">Doanh thu</div>
+          <div className="text-sm text-muted-foreground leading-snug">
             Bảng doanh thu theo ngày × phòng cho tất cả chi nhánh.
           </div>
         </div>
       </div>
 
-      <Card size="sm">
+      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
         <CardContent className="py-3 grid gap-2 md:grid-cols-2">
           <div className="grid gap-1.5 text-xs">
             <Label>Chi nhánh</Label>
@@ -827,9 +827,9 @@ export function RatesPage() {
 
       <div className="grid gap-3">
         {/* Mobile: danh sách ngày trong tháng — dọc, dễ cuộn */}
-        <div className="md:hidden border bg-card p-3">
-          <div className="text-sm font-medium">Lịch tháng</div>
-          <div className="mt-2 border bg-background divide-y rounded-sm overflow-hidden">
+        <div className="md:hidden rounded-2xl border border-border/50 bg-card p-4 shadow-[var(--shadow-warm-sm)]">
+          <div className="text-sm font-semibold">Lịch tháng</div>
+          <div className="mt-3 overflow-hidden divide-y rounded-xl border border-border/40 bg-background">
             {days.map((d) => {
               const dateIso = format(d, "yyyy-MM-dd")
               const t = dailyTotals.get(dateIso)
@@ -840,9 +840,9 @@ export function RatesPage() {
                   key={dateIso}
                   type="button"
                   className={[
-                    "w-full text-left p-2.5 grid grid-cols-[1fr_auto] items-center gap-2 hover:bg-muted/30 min-h-11",
-                    isSelected ? "bg-muted/20" : "",
-                    isToday ? "border-l-4 border-l-primary bg-primary/5" : "",
+                    "w-full text-left p-2.5 grid grid-cols-[1fr_auto] items-center gap-2 hover:bg-muted/40 min-h-11 transition-colors first:rounded-t-xl last:rounded-b-xl",
+                    isSelected ? "bg-muted/25" : "",
+                    isToday ? "border-l-4 border-l-primary bg-primary/8" : "",
                   ].join(" ")}
                   disabled={isLoading}
                   onClick={() => {
@@ -880,9 +880,9 @@ export function RatesPage() {
         </div>
 
         {/* Desktop/tablet: lưới tháng trực quan */}
-        <div className="hidden md:block border bg-card p-3">
-          <div className="text-sm font-medium">Lịch tháng</div>
-          <div className="mt-2 grid grid-cols-7 gap-2 text-xs text-muted-foreground">
+        <div className="hidden md:block rounded-2xl border border-border/50 bg-card p-4 shadow-[var(--shadow-warm-sm)]">
+          <div className="text-sm font-semibold">Lịch tháng</div>
+          <div className="mt-3 grid grid-cols-7 gap-2 text-xs font-medium text-muted-foreground">
             <div className="text-center">T2</div>
             <div className="text-center">T3</div>
             <div className="text-center">T4</div>
@@ -902,9 +902,9 @@ export function RatesPage() {
                   key={c.iso}
                   type="button"
                   className={[
-                    "border bg-background hover:bg-muted/30 text-left p-2 min-h-[76px] grid gap-1 rounded-sm",
+                    "border border-border/50 bg-background hover:bg-muted/40 text-left p-2 min-h-[76px] grid gap-1 rounded-xl transition-all hover:shadow-sm",
                     c.inMonth ? "" : "opacity-40",
-                    isToday ? "ring-2 ring-primary/55 bg-primary/5" : isSelected ? "ring-2 ring-ring/50 bg-muted/15" : "",
+                    isToday ? "ring-2 ring-primary/50 bg-primary/8 shadow-[var(--shadow-warm-sm)]" : isSelected ? "ring-2 ring-ring/40 bg-muted/20" : "",
                   ].join(" ")}
                   disabled={!c.inMonth || isLoading}
                   title={c.inMonth ? `Ngày ${format(c.d, "dd/MM")}${isToday ? " · Hôm nay" : ""}` : ""}

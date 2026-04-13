@@ -1,12 +1,13 @@
 import { format, isValid, parseISO } from "date-fns"
 import { useState } from "react"
-import { CalendarBlank, Globe, PencilSimple, Phone, Tag, Trash } from "@phosphor-icons/react"
+import { CalendarBlank, Globe, PencilSimple, Phone, Tag, Trash, CalendarPlus } from "@phosphor-icons/react"
 
 import { BookingDialog } from "@/components/booking/BookingDialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Dialog,
   DialogContent,
@@ -85,15 +86,15 @@ export function BookingsPage() {
       />
 
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-0.5">
-          <div className="text-base font-semibold leading-tight sm:text-lg">Đặt phòng</div>
-          <div className="text-xs text-muted-foreground leading-snug sm:text-sm">
+        <div className="min-w-0 space-y-1">
+          <div className="text-lg font-bold leading-tight tracking-tight sm:text-xl">Đặt phòng</div>
+          <div className="text-sm text-muted-foreground leading-snug">
             Danh sách đặt phòng. Mỗi khách có thể đặt nhiều phòng ở nhiều chi nhánh.
           </div>
         </div>
       </div>
 
-      <Card size="sm">
+      <Card size="sm" className="transition-shadow hover:shadow-[var(--shadow-warm-md)]">
         <CardContent className="py-3 grid gap-2 md:grid-cols-2">
           <div className="grid gap-1.5 text-xs">
             <Label htmlFor="bookings-search">Tìm kiếm</Label>
@@ -143,18 +144,38 @@ export function BookingsPage() {
       ) : null}
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="grid gap-3">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full md:w-2/3" />
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-muted-foreground py-8 text-center">
-          {bookings.length === 0 ? "Chưa có đặt phòng nào." : "Không tìm thấy đặt phòng phù hợp."}
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/80 bg-muted/20 px-6 py-12 text-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <CalendarPlus className="size-8" weight="duotone" />
+          </div>
+          <div className="max-w-sm space-y-1">
+            <div className="text-base font-semibold text-foreground">
+              {bookings.length === 0 ? "Chưa có đặt phòng" : "Không tìm thấy"}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {bookings.length === 0
+                ? "Thêm đặt phòng mới bằng nút Đặt phòng góc màn hình."
+                : "Thử đổi bộ lọc hoặc từ khóa tìm kiếm."}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map((booking) => {
             const stay = bookingStayLabel(booking.items)
             return (
-              <Card key={booking.id} size="sm">
-                <CardContent className="p-3">
+              <Card
+                key={booking.id}
+                size="sm"
+                className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-warm-md)]"
+              >
+                <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -202,7 +223,7 @@ export function BookingsPage() {
                       ) : null}
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-sm font-semibold tabular-nums">
+                      <span className="text-sm font-semibold tabular-mono">
                         {booking.items.reduce((sum, i) => sum + Number(i.price), 0).toLocaleString("vi-VN")} đ
                       </span>
                       <div className="flex items-center gap-0.5">

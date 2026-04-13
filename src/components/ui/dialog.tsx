@@ -31,7 +31,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/40 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 dark:bg-black/60",
         className,
       )}
       {...props}
@@ -53,13 +53,13 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed z-50 box-border grid w-full gap-4 bg-popover p-4 text-xs/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none",
+          "fixed z-50 box-border grid w-full gap-4 bg-popover p-5 text-sm/relaxed text-popover-foreground shadow-[var(--shadow-warm-xl)] duration-100 outline-none",
           /* Mobile: bottom sheet — dùng lề trái/phải đối xứng thay vì inset-x-0 + max-w (tránh lệch một bên) */
-          "bottom-0 top-auto left-[max(1rem,env(safe-area-inset-left,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] max-h-[min(90vh,100dvh)] max-w-none translate-x-0 translate-y-0 rounded-t-xl border-t border-border/30 pb-[max(1rem,env(safe-area-inset-bottom,0px))]",
+          "bottom-0 top-auto left-[max(1rem,env(safe-area-inset-left,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] max-h-[min(90vh,100dvh)] max-w-none translate-x-0 translate-y-0 rounded-t-2xl border border-border/40 pb-[max(1rem,env(safe-area-inset-bottom,0px))]",
           "data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4",
           "data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4",
           /* sm+: centered modal */
-          "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-h-[90vh] sm:max-w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-none sm:border-t-0 sm:pb-4",
+          "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:bottom-auto sm:max-h-[90vh] sm:max-w-[calc(100%-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border sm:border-border/50 sm:pb-5",
           "sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0",
           "sm:data-closed:zoom-out-95",
           "sm:max-w-sm",

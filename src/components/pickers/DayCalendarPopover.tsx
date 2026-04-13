@@ -87,8 +87,7 @@ export function DayCalendarPopover({
             setOpen(false);
           }}
           modifiers={{
-            hasRevenue: (date) =>
-              revenueDates.has(format(date, "yyyy-MM-dd")),
+            hasRevenue: (date) => revenueDates.has(format(date, "yyyy-MM-dd")),
           }}
           modifiersClassNames={{
             hasRevenue: "has-revenue-dot",

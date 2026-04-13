@@ -7,3 +7,13 @@ export function pickerPopoverContentClassName(extra?: string) {
     extra,
   );
 }
+
+/** Tiêu đề / mô tả phía trên lịch (MonthPicker). */
+export function pickerPopoverHeaderClassName(extra?: string) {
+  return cn("border-b border-border/50 px-3 py-2.5", extra);
+}
+
+/** Vùng chứa Calendar bên dưới header. */
+export function pickerPopoverBodyClassName(extra?: string) {
+  return cn("p-2 pt-1", extra);
+}
