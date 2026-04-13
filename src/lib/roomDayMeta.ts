@@ -17,6 +17,24 @@ export type MetaUpsertRow = {
   checkedOutAt: string | null
 }
 
+/** Xóa meta ngày nếu không còn booking_items nào cho (room, date) — dùng khi sửa/xóa đặt phòng. */
+export async function deleteRoomDayMetaIfUnbooked(roomId: UUID, date: string) {
+  const { count, error } = await supabase
+    .from("booking_items")
+    .select("id", { count: "exact", head: true })
+    .eq("room_id", roomId)
+    .eq("date", date)
+  if (error) throw error
+  if ((count ?? 0) === 0) {
+    const { error: delError } = await supabase
+      .from("room_day_meta")
+      .delete()
+      .eq("room_id", roomId)
+      .eq("date", date)
+    if (delError) throw delError
+  }
+}
+
 export async function upsertMetasBatch(rows: MetaUpsertRow[]) {
   if (rows.length === 0) return
   const payload = rows.map((r) => ({

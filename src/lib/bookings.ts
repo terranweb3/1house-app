@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase"
-import { upsertMetasBatch } from "@/lib/roomDayMeta"
+import { deleteRoomDayMetaIfUnbooked, upsertMetasBatch } from "@/lib/roomDayMeta"
 import { upsertRatesBatch } from "@/lib/rates"
 import type { Booking, BookingItem, BookingWithItems, PaymentStatus, RoomDayMeta, UUID } from "@/lib/types"
 
@@ -24,6 +24,8 @@ export type UpdateBookingInput = {
   paymentStatus?: PaymentStatus
   paymentPartialAmount?: number | null
   note?: string | null
+  /** Khi có: thay toàn bộ booking_items (giống lúc tạo mới). */
+  items?: CreateBookingInput["items"]
 }
 
 export async function createBooking(input: CreateBookingInput): Promise<Booking> {
@@ -170,7 +172,53 @@ export async function updateBooking(id: UUID, input: UpdateBookingInput): Promis
   const paymentStatus = input.paymentStatus ?? current.payment_status
   const note = input.note !== undefined ? input.note : current.note
 
-  const items = await getBookingItems(id)
+  let items: BookingItem[]
+
+  if (input.items !== undefined) {
+    const previousItems = await getBookingItems(id)
+    const oldKeys = new Set(previousItems.map((i) => `${i.room_id}:${i.date}`))
+    const newKeys = new Set(input.items.map((i) => `${i.roomId}:${i.date}`))
+
+    const { error: deleteItemsError } = await supabase
+      .from("booking_items")
+      .delete()
+      .eq("booking_id", id)
+    if (deleteItemsError) throw deleteItemsError
+
+    if (input.items.length > 0) {
+      const rows = input.items.map((item) => ({
+        booking_id: id,
+        branch_id: item.branchId,
+        room_id: item.roomId,
+        date: item.date,
+        price: item.price,
+      }))
+      const { error: insertItemsError } = await supabase.from("booking_items").insert(rows)
+      if (insertItemsError) throw insertItemsError
+
+      await upsertRatesBatch(
+        input.items.map((item) => ({
+          branchId: item.branchId,
+          roomId: item.roomId,
+          date: item.date,
+          price: item.price,
+        })),
+      )
+    }
+
+    for (const key of oldKeys) {
+      if (!newKeys.has(key)) {
+        const sep = key.indexOf(":")
+        const roomId = key.slice(0, sep) as UUID
+        const date = key.slice(sep + 1)
+        await deleteRoomDayMetaIfUnbooked(roomId, date)
+      }
+    }
+
+    items = await getBookingItems(id)
+  } else {
+    items = await getBookingItems(id)
+  }
   const roomIds = [...new Set(items.map((i) => i.room_id))]
   const dates = [...new Set(items.map((i) => i.date))]
   const { data: existingMetas } = await supabase

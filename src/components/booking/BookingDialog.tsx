@@ -264,12 +264,23 @@ export function BookingDialog({
       if (editBooking) {
         if (!updateBooking)
           throw new Error("updateBooking is required for edit mode");
+        const lines = items.map((item) => ({
+          branchId: item.branchId as UUID,
+          roomId: item.roomId as UUID,
+          fromDate: item.fromDate,
+          toDate: item.toDate,
+          pricePerNight: Number(item.pricePerNight.replaceAll(/[^\d]/g, "")),
+        }));
+        const bookingItems = expandLinesToCreateItems(lines);
+        if (bookingItems.length === 0)
+          throw new Error("Không có dòng đặt phòng hợp lệ");
         await updateBooking(editBooking.id, {
           guestName: guestName.trim(),
           guestPhone: guestPhone.trim() || null,
           paymentStatus,
           paymentPartialAmount: resolvedPartial,
           note: note.trim() || null,
+          items: bookingItems,
         });
         toast.success("Cập nhật đặt phòng thành công");
       } else {
@@ -315,8 +326,6 @@ export function BookingDialog({
     updateBooking,
   ]);
 
-  const readOnly = Boolean(editBooking);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal="trap-focus">
       <DialogContent className="w-full min-w-0 max-h-[min(90vh,100dvh)] max-w-[calc(100vw-2rem)] gap-3 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:gap-4 sm:p-4 sm:max-h-[90vh] sm:max-w-[min(960px,calc(100vw-2rem))]">
@@ -339,7 +348,6 @@ export function BookingDialog({
                 placeholder="Ví dụ: Anh A"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
-                disabled={readOnly}
               />
             </div>
 
@@ -351,7 +359,6 @@ export function BookingDialog({
                 placeholder="090..."
                 value={guestPhone}
                 onChange={(e) => setGuestPhone(e.target.value)}
-                disabled={readOnly}
               />
             </div>
           </div>
@@ -364,7 +371,6 @@ export function BookingDialog({
               placeholder="Ví dụ: Khách chuyển khoản..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              disabled={readOnly}
             />
           </div>
 
@@ -373,39 +379,29 @@ export function BookingDialog({
               <Label className="text-base font-medium shrink min-w-0">
                 Danh sách phòng
               </Label>
-              {!readOnly ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full shrink-0 sm:w-auto"
-                  onClick={addItem}
-                >
-                  + Thêm phòng
-                </Button>
-              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full shrink-0 sm:w-auto"
+                onClick={addItem}
+              >
+                + Thêm phòng
+              </Button>
             </div>
-
-            {readOnly ? (
-              <p className="text-xs text-muted-foreground mb-3 mt-1">
-                Để thay đổi phòng hoặc khoảng ngày, hãy xoá và tạo lại đặt
-                phòng.
-              </p>
-            ) : null}
 
             {linesStaySummary ? (
               <p className="text-xs text-muted-foreground tabular-nums border border-dashed border-border/70 bg-muted/15 px-2.5 py-2 leading-snug mt-2">
                 {linesStaySummary}
               </p>
-            ) : !readOnly ? (
+            ) : (
               <p className="text-xs text-muted-foreground mt-2">
                 Chọn từ ngày và đến ngày trên từng dòng — tóm tắt khoảng đặt sẽ
                 hiển thị ở đây.
               </p>
-            ) : null}
+            )}
 
-            {!readOnly &&
-            (bookingEstimate.totalNights > 0 ||
+            {(bookingEstimate.totalNights > 0 ||
               bookingEstimate.lineCount > 0) ? (
               <p className="text-xs tabular-nums border border-border/60 bg-muted/10 px-2.5 py-2 mt-2 leading-snug">
                 <span className="text-muted-foreground">Ước tính: </span>
@@ -440,7 +436,6 @@ export function BookingDialog({
                         onValueChange={(v) =>
                           updateItem(item.id, "branchId", v ?? null)
                         }
-                        disabled={readOnly}
                       >
                         <SelectTrigger className="w-full min-w-0">
                           <SelectValue placeholder="Chọn chi nhánh">
@@ -468,7 +463,7 @@ export function BookingDialog({
                         rooms={branchRooms}
                         value={item.roomId}
                         onValueChange={(v) => updateItem(item.id, "roomId", v)}
-                        disabled={readOnly || !item.branchId}
+                        disabled={!item.branchId}
                         labelId={`bd-room-${item.id}`}
                       />
                     </div>
@@ -482,7 +477,6 @@ export function BookingDialog({
                           onChange={(v) =>
                             updateItem(item.id, "fromDate", v)
                           }
-                          disabled={readOnly}
                         />
                       </div>
 
@@ -492,7 +486,6 @@ export function BookingDialog({
                           id={`bd-to-${item.id}`}
                           value={item.toDate}
                           onChange={(v) => updateItem(item.id, "toDate", v)}
-                          disabled={readOnly}
                         />
                       </div>
                     </div>
@@ -508,7 +501,6 @@ export function BookingDialog({
                           onChange={(e) =>
                             updateItem(item.id, "pricePerNight", e.target.value)
                           }
-                          disabled={readOnly}
                         />
                       </div>
 
@@ -518,7 +510,7 @@ export function BookingDialog({
                           variant="ghost"
                           size="icon"
                           onClick={() => removeItem(item.id)}
-                          disabled={readOnly || items.length === 1}
+                          disabled={items.length === 1}
                           className="text-destructive hover:text-destructive max-md:size-12 max-md:min-h-12 max-md:min-w-12"
                           aria-label="Xoá dòng phòng"
                         >
@@ -541,7 +533,6 @@ export function BookingDialog({
                 setPaymentStatus(next);
                 if (next !== "partial") setPaymentPartialAmount("");
               }}
-              disabled={readOnly}
             >
               <SelectTrigger className="w-full min-w-0">
                 <SelectValue>
@@ -562,7 +553,7 @@ export function BookingDialog({
                 <SelectItem value="paid">Đã thu</SelectItem>
               </SelectContent>
             </Select>
-            {paymentStatus === "partial" && !readOnly ? (
+            {paymentStatus === "partial" ? (
               <div className="grid gap-1.5">
                 <Label htmlFor="bd-partial-paid">Đã thu (đ) *</Label>
                 <Input
@@ -574,19 +565,6 @@ export function BookingDialog({
                   onChange={(e) => setPaymentPartialAmount(e.target.value)}
                 />
               </div>
-            ) : readOnly &&
-              paymentStatus === "partial" &&
-              editBooking?.payment_partial_amount != null &&
-              Number(editBooking.payment_partial_amount) > 0 ? (
-              <p className="text-xs text-muted-foreground tabular-nums">
-                Đã thu:{" "}
-                <span className="font-medium text-foreground">
-                  {Number(editBooking.payment_partial_amount).toLocaleString(
-                    "vi-VN",
-                  )}{" "}
-                  đ
-                </span>
-              </p>
             ) : null}
           </div>
         </div>
