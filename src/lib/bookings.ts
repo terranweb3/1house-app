@@ -1,7 +1,15 @@
 import { supabase } from "@/lib/supabase"
 import { deleteRoomDayMetaIfUnbooked, upsertMetasBatch } from "@/lib/roomDayMeta"
 import { upsertRatesBatch } from "@/lib/rates"
-import type { Booking, BookingItem, BookingWithItems, PaymentStatus, RoomDayMeta, UUID } from "@/lib/types"
+import type {
+  Booking,
+  BookingItem,
+  BookingSource,
+  BookingWithItems,
+  PaymentStatus,
+  RoomDayMeta,
+  UUID,
+} from "@/lib/types"
 
 export type CreateBookingInput = {
   guestName: string
@@ -10,6 +18,9 @@ export type CreateBookingInput = {
   /** Bắt buộc khi paymentStatus = partial (VND) */
   paymentPartialAmount: number | null
   note: string | null
+  bookingSource: BookingSource
+  /** Có nghĩa khi bookingSource = other */
+  bookingSourceOther: string | null
   items: Array<{
     branchId: UUID
     roomId: UUID
@@ -24,6 +35,8 @@ export type UpdateBookingInput = {
   paymentStatus?: PaymentStatus
   paymentPartialAmount?: number | null
   note?: string | null
+  bookingSource?: BookingSource
+  bookingSourceOther?: string | null
   /** Khi có: thay toàn bộ booking_items (giống lúc tạo mới). */
   items?: CreateBookingInput["items"]
 }
@@ -38,6 +51,9 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
       payment_partial_amount:
         input.paymentStatus === "partial" ? input.paymentPartialAmount : null,
       note: input.note,
+      booking_source: input.bookingSource,
+      booking_source_other:
+        input.bookingSource === "other" ? input.bookingSourceOther : null,
     })
     .select()
     .single()
@@ -154,6 +170,11 @@ export async function updateBooking(id: UUID, input: UpdateBookingInput): Promis
   if (input.guestPhone !== undefined) updates.guest_phone = input.guestPhone
   if (input.paymentStatus !== undefined) updates.payment_status = input.paymentStatus
   if (input.note !== undefined) updates.note = input.note
+  if (input.bookingSource !== undefined) {
+    updates.booking_source = input.bookingSource
+    updates.booking_source_other =
+      input.bookingSource === "other" ? input.bookingSourceOther?.trim() || null : null
+  }
   if (input.paymentStatus !== undefined || input.paymentPartialAmount !== undefined) {
     updates.payment_partial_amount = nextPartial
   }

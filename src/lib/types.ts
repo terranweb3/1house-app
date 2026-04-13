@@ -31,6 +31,9 @@ export type Rate = {
 
 export type PaymentStatus = "unpaid" | "paid" | "partial"
 
+/** Nguồn khách đặt (kèm `booking_source_other` khi `other`). */
+export type BookingSource = "booking_com" | "zalo" | "facebook" | "other"
+
 export type RoomDayMeta = {
   id: UUID
   branch_id: UUID
@@ -58,6 +61,9 @@ export type Booking = {
   /** VND đã thu khi payment_status = partial */
   payment_partial_amount: number | null
   note: string | null
+  booking_source: BookingSource
+  /** Có nghĩa khi `booking_source` = `other` */
+  booking_source_other: string | null
   created_at: string
   updated_at: string
 }

@@ -30,9 +30,10 @@ import {
   groupBookingItemsToLines,
   MAX_NIGHTS_PER_LINE,
 } from "@/lib/bookingRanges";
+import { BOOKING_SOURCE_OPTIONS, isBookingSource } from "@/lib/bookingSource";
 import { useBranches } from "@/hooks/useBranches";
 import { useRooms } from "@/hooks/useRooms";
-import type { BookingWithItems, PaymentStatus, UUID } from "@/lib/types";
+import type { BookingSource, BookingWithItems, PaymentStatus, UUID } from "@/lib/types";
 import type { CreateBookingInput, UpdateBookingInput } from "@/lib/bookings";
 
 type BookingItemInput = {
@@ -93,6 +94,8 @@ export function BookingDialog({
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
   const [paymentPartialAmount, setPaymentPartialAmount] = useState("");
   const [note, setNote] = useState("");
+  const [bookingSource, setBookingSource] = useState<BookingSource>("booking_com");
+  const [bookingSourceOther, setBookingSourceOther] = useState("");
   const [items, setItems] = useState<BookingItemInput[]>([emptyLine()]);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -118,6 +121,12 @@ export function BookingDialog({
           : "",
       );
       setNote(editBooking.note ?? "");
+      setBookingSource(
+        editBooking.booking_source && isBookingSource(editBooking.booking_source)
+          ? editBooking.booking_source
+          : "other",
+      );
+      setBookingSourceOther(editBooking.booking_source_other ?? "");
       setItems(
         editBooking.items.length > 0
           ? groupBookingItemsToLines(editBooking.items, generateId)
@@ -129,6 +138,8 @@ export function BookingDialog({
       setPaymentStatus("unpaid");
       setPaymentPartialAmount("");
       setNote("");
+      setBookingSource("booking_com");
+      setBookingSourceOther("");
       if (prefillCreate) {
         setItems([
           {
@@ -218,6 +229,9 @@ export function BookingDialog({
 
   const validateLines = useCallback(() => {
     if (!guestName.trim()) return "Vui lòng nhập tên khách";
+    if (bookingSource === "other" && !bookingSourceOther.trim()) {
+      return "Vui lòng ghi rõ nguồn khi chọn Khác.";
+    }
     if (items.length === 0) return "Vui lòng thêm ít nhất 1 phòng";
     for (const item of items) {
       if (!item.branchId) return "Vui lòng chọn chi nhánh cho tất cả các phòng";
@@ -239,7 +253,7 @@ export function BookingDialog({
         return "Giá mỗi đêm không hợp lệ";
     }
     return null;
-  }, [guestName, items]);
+  }, [guestName, bookingSource, bookingSourceOther, items]);
 
   const onSubmit = useCallback(async () => {
     const validationError = validateLines();
@@ -280,6 +294,9 @@ export function BookingDialog({
           paymentStatus,
           paymentPartialAmount: resolvedPartial,
           note: note.trim() || null,
+          bookingSource,
+          bookingSourceOther:
+            bookingSource === "other" ? bookingSourceOther.trim() || null : null,
           items: bookingItems,
         });
         toast.success("Cập nhật đặt phòng thành công");
@@ -302,6 +319,9 @@ export function BookingDialog({
           paymentStatus,
           paymentPartialAmount: resolvedPartial,
           note: note.trim() || null,
+          bookingSource,
+          bookingSourceOther:
+            bookingSource === "other" ? bookingSourceOther.trim() || null : null,
           items: bookingItems,
         });
         toast.success("Tạo đặt phòng thành công");
@@ -321,6 +341,8 @@ export function BookingDialog({
     paymentStatus,
     paymentPartialAmount,
     note,
+    bookingSource,
+    bookingSourceOther,
     onOpenChange,
     createBooking,
     updateBooking,
@@ -361,6 +383,53 @@ export function BookingDialog({
                 onChange={(e) => setGuestPhone(e.target.value)}
               />
             </div>
+          </div>
+
+          <div
+            className={
+              bookingSource === "other"
+                ? "grid gap-3 sm:grid-cols-2"
+                : "grid gap-3"
+            }
+          >
+            <div className="grid gap-1.5 text-sm">
+              <Label htmlFor="bd-source">Nguồn đặt *</Label>
+              <Select
+                value={bookingSource}
+                onValueChange={(v) => {
+                  const next = v as BookingSource;
+                  setBookingSource(next);
+                  if (next !== "other") setBookingSourceOther("");
+                }}
+              >
+                <SelectTrigger id="bd-source" className="w-full min-w-0">
+                  <SelectValue>
+                    {(val) =>
+                      BOOKING_SOURCE_OPTIONS.find((o) => o.value === val)?.label ??
+                      String(val ?? "")
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {BOOKING_SOURCE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {bookingSource === "other" ? (
+              <div className="grid gap-1.5 text-sm">
+                <Label htmlFor="bd-source-other">Ghi rõ nguồn *</Label>
+                <Input
+                  id="bd-source-other"
+                  placeholder="VD: Google, giới thiệu, điện thoại..."
+                  value={bookingSourceOther}
+                  onChange={(e) => setBookingSourceOther(e.target.value)}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="grid gap-1.5 text-sm">

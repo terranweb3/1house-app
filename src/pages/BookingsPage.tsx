@@ -1,7 +1,8 @@
 import { format, isValid, parseISO } from "date-fns"
 import { useState } from "react"
-import { CalendarBlank, Phone, Tag, Trash } from "@phosphor-icons/react"
+import { CalendarBlank, Globe, PencilSimple, Phone, Tag, Trash } from "@phosphor-icons/react"
 
+import { BookingDialog } from "@/components/booking/BookingDialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useBookings } from "@/hooks/useBookings"
+import { formatBookingSourceLabel } from "@/lib/bookingSource"
 import { paymentBadge, paymentLabelWithPartial } from "@/lib/payment"
 import type { BookingWithItems, PaymentStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -42,11 +44,13 @@ function bookingStayLabel(items: { date: string }[]): string | null {
 }
 
 export function BookingsPage() {
-  const { bookings, isLoading, error, deleteBooking } = useBookings()
+  const { bookings, isLoading, error, deleteBooking, updateBooking } = useBookings()
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<PaymentStatus | "all">("all")
   const [deleteConfirm, setDeleteConfirm] = useState<BookingWithItems | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editBooking, setEditBooking] = useState<BookingWithItems | null>(null)
 
   const filtered = bookings.filter((b) => {
     const matchSearch =
@@ -70,6 +74,16 @@ export function BookingsPage() {
 
   return (
     <div className="grid gap-3">
+      <BookingDialog
+        open={editOpen}
+        onOpenChange={(o) => {
+          setEditOpen(o)
+          if (!o) setEditBooking(null)
+        }}
+        editBooking={editBooking}
+        updateBooking={updateBooking}
+      />
+
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 space-y-0.5">
           <div className="text-base font-semibold leading-tight sm:text-lg">Đặt phòng</div>
@@ -153,6 +167,15 @@ export function BookingsPage() {
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1 min-w-0">
+                          <Globe className="size-3 shrink-0" />
+                          <span className="min-w-0">
+                            {formatBookingSourceLabel(
+                              booking.booking_source,
+                              booking.booking_source_other,
+                            )}
+                          </span>
+                        </span>
                         {booking.guest_phone ? (
                           <span className="flex items-center gap-1 tabular-nums">
                             <Phone className="size-3" />
@@ -182,14 +205,33 @@ export function BookingsPage() {
                       <span className="text-sm font-semibold tabular-nums">
                         {booking.items.reduce((sum, i) => sum + Number(i.price), 0).toLocaleString("vi-VN")} đ
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => setDeleteConfirm(booking)}
-                      >
-                        <Trash className="size-4" />
-                      </Button>
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-foreground"
+                          title="Sửa đặt phòng"
+                          aria-label="Sửa đặt phòng"
+                          onClick={() => {
+                            setEditBooking(booking)
+                            setEditOpen(true)
+                          }}
+                        >
+                          <PencilSimple className="size-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive"
+                          title="Xoá đặt phòng"
+                          aria-label="Xoá đặt phòng"
+                          onClick={() => setDeleteConfirm(booking)}
+                        >
+                          <Trash className="size-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

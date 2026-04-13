@@ -1,3 +1,4 @@
+import { Globe } from "@phosphor-icons/react"
 import { format, parseISO } from "date-fns"
 import { vi } from "date-fns/locale"
 import { useEffect, useMemo, useState } from "react"
@@ -8,10 +9,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MonthPicker } from "@/components/pickers/MonthPicker"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
+import { useBookings } from "@/hooks/useBookings"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
+import { formatBookingSourceLabel } from "@/lib/bookingSource"
 
 function ym(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+}
+
+function monthBounds(ymStr: string) {
+  const [yStr, mStr] = ymStr.split("-")
+  const d = new Date(Number(yStr), Number(mStr) - 1, 1)
+  const from = format(new Date(d.getFullYear(), d.getMonth(), 1), "yyyy-MM-dd")
+  const to = format(new Date(d.getFullYear(), d.getMonth() + 1, 0), "yyyy-MM-dd")
+  return { from, to }
 }
 
 function prevMonthYm(ymStr: string) {
@@ -207,6 +218,30 @@ export function DashboardPage() {
   const [compareMonth, setCompareMonth] = useState<string | null>(() => prevMonthYm(ym(new Date())))
 
   const { stats, isLoading, error, refresh } = useDashboardStats({ month, compareMonth })
+  const { bookings, isLoading: bookingsLoading, refresh: refreshBookings } = useBookings()
+
+  const bookingSourceByMonth = useMemo(() => {
+    const { from, to } = monthBounds(month)
+    const counts = new Map<string, number>()
+    for (const b of bookings) {
+      const inMonth = b.items.some((i) => i.date >= from && i.date <= to)
+      if (!inMonth) continue
+      const label = formatBookingSourceLabel(b.booking_source, b.booking_source_other)
+      counts.set(label, (counts.get(label) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
+  }, [bookings, month])
+
+  const bookingCountInMonth = useMemo(
+    () => bookingSourceByMonth.reduce((s, [, n]) => s + n, 0),
+    [bookingSourceByMonth],
+  )
+
+  const topSourceCount = bookingSourceByMonth[0]?.[1] ?? 1
+
+  async function refreshAll() {
+    await Promise.all([refresh(), refreshBookings({ silent: true })])
+  }
 
   const currentMonthTitle = useMemo(() => formatMonthTitle(month), [month])
 
@@ -263,7 +298,7 @@ export function DashboardPage() {
               >
                 Xóa so sánh
               </Button>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => void refresh()}>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => void refreshAll()}>
                 Làm mới
               </Button>
             </div>
@@ -417,6 +452,39 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card size="sm">
+        <CardHeader className="pb-2 pt-3">
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="size-5 text-muted-foreground shrink-0" aria-hidden />
+            Đặt phòng theo nguồn
+          </CardTitle>
+          <CardDescription>
+            Số lượng đặt có ít nhất một đêm trong {formatMonthTitle(month)}
+            {bookingCountInMonth > 0 ? ` · ${bookingCountInMonth} đặt` : ""}.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 pb-3">
+          {bookingsLoading ? (
+            <div className="text-sm text-muted-foreground">Đang tải...</div>
+          ) : bookingSourceByMonth.length === 0 ? (
+            <div className="text-sm text-muted-foreground">Không có đặt phòng nào trong tháng này.</div>
+          ) : (
+            bookingSourceByMonth.map(([label, count]) => {
+              const pct = topSourceCount > 0 ? (count / topSourceCount) * 100 : 0
+              return (
+                <div key={label} className="grid gap-1">
+                  <div className="flex items-center justify-between gap-3 min-w-0">
+                    <div className="text-sm min-w-0 flex-1 leading-snug">{label}</div>
+                    <div className="text-sm font-medium tabular-nums shrink-0">{count}</div>
+                  </div>
+                  <Progress value={Math.min(100, Math.max(0, pct))} className="h-2" />
+                </div>
+              )
+            })
+          )}
+        </CardContent>
+      </Card>
 
       <DailyBarChart
         series={stats.dailyTotals}
